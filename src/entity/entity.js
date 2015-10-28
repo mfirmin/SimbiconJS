@@ -13,7 +13,7 @@ function Entity(name, opts) {
 
     this.initialize();
 
-    this.mesh.matrixAutoUpdate = false;
+//    this.mesh.matrixAutoUpdate = false;
 }
 
 
@@ -62,6 +62,7 @@ Entity.prototype.setPosition = function(xyz) {
     this.mesh.position.x = xyz[0];
     this.mesh.position.y = xyz[1];
     this.mesh.position.z = xyz[2];
+
 
 }
 // TODO: Make this work.

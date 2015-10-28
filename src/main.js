@@ -2,13 +2,22 @@
 
 var $     = require('jquery');
 var World = require('./world/world');
-var Box   = require('./entity/box');
+//var Box   = require('./entity/box');
+var Sphere= require('./entity/sphere');
 
 var worlds = {};
 
 
 $(document).ready(function() {
 
+    var glWorld = new World('world1');
+    var e = new Sphere('s1', 10);
+
+    e.setPosition([0,100,0]);
+
+    glWorld.addEntity(e);
+
+    glWorld.go();
 
 // Adapted from HelloWorld.cpp, Copyright (c) 2003-2007 Erwin Coumans  http://continuousphysics.com/Bullet/
     function main() {
@@ -26,7 +35,7 @@ $(document).ready(function() {
 
       var groundTransform = new Ammo.btTransform();
       groundTransform.setIdentity();
-      groundTransform.setOrigin(new Ammo.btVector3(0, -56, 0));
+      groundTransform.setOrigin(new Ammo.btVector3(0, -50, 0));
 
       (function() {
         var mass = 0;
@@ -41,7 +50,6 @@ $(document).ready(function() {
         var body = new Ammo.btRigidBody(rbInfo);
 
         dynamicsWorld.addRigidBody(body);
-        bodies.push(body);
       })();
 
       (function() {
@@ -50,14 +58,14 @@ $(document).ready(function() {
         var startTransform = new Ammo.btTransform();
         startTransform.setIdentity();
 
-        var mass = 1;
+        var mass = 100;
         var isDynamic = (mass != 0);
 
         var localInertia = new Ammo.btVector3(0, 0, 0);
         if (isDynamic)
           colShape.calculateLocalInertia(mass,localInertia);
 
-        startTransform.setOrigin(new Ammo.btVector3(2, 10, 0));
+        startTransform.setOrigin(new Ammo.btVector3(0, 100, 0));
       
         var myMotionState = new Ammo.btDefaultMotionState(startTransform);
         var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, colShape, localInertia);
@@ -69,25 +77,35 @@ $(document).ready(function() {
 
       var trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
 
-      for (var i = 0; i < 135; i++) {
-        dynamicsWorld.stepSimulation(1/60, 10);
+      var finish = function() {
+          Ammo.destroy(collisionConfiguration);
+          Ammo.destroy(dispatcher);
+          Ammo.destroy(overlappingPairCache);
+          Ammo.destroy(solver);
+          //Ammo.destroy(dynamicsWorld); // XXX gives an error for some reason, |getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(bp,m_dispatcher1);| in btCollisionWorld.cpp throws a 'pure virtual' failure
+
+          console.log('ok.')
+      }
+
+      var t = 0;
+      var timestep = function() {
+        dynamicsWorld.stepSimulation(1/60, 0);
         
         bodies.forEach(function(body) {
           if (body.getMotionState()) {
             body.getMotionState().getWorldTransform(trans);
-            console.log("world pos = " + [trans.getOrigin().x().toFixed(2), trans.getOrigin().y().toFixed(2), trans.getOrigin().z().toFixed(2)]);
+
+            e.setPosition([trans.getOrigin().x().toFixed(2), trans.getOrigin().y().toFixed(2), trans.getOrigin().z().toFixed(2)]);
+
           }
         });
-      }
+        if (++t < 1000) { setTimeout(timestep, 1000/60); }
+        else { finish(); }
+      };
+
+      setTimeout(timestep, 1000/60);
 
       // Delete objects we created through |new|. We just do a few of them here, but you should do them all if you are not shutting down ammo.js
-      Ammo.destroy(collisionConfiguration);
-      Ammo.destroy(dispatcher);
-      Ammo.destroy(overlappingPairCache);
-      Ammo.destroy(solver);
-      //Ammo.destroy(dynamicsWorld); // XXX gives an error for some reason, |getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(bp,m_dispatcher1);| in btCollisionWorld.cpp throws a 'pure virtual' failure
-
-      console.log('ok.')
     }
 
     main();

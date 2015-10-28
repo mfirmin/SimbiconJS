@@ -2,7 +2,7 @@
 var THREE = require('../lib/three.min.js');
 var Entity = require('./entity');
 
-function Sphere(name, radius, height, opts) {
+function Sphere(name, radius, opts) {
 
     this.radius = radius;
     Entity.call(this, name, opts);

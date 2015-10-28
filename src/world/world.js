@@ -33,7 +33,7 @@ World.prototype.initializeGL = function() {
             this.renderer = new THREE.CanvasRenderer();
             this.renderType = 'canvas';
         }catch(e2){
-            this.error = true;
+            throw 'Could not initialize Renderer';
             return;
         }
     }
@@ -44,7 +44,7 @@ World.prototype.initializeGL = function() {
 
 World.prototype.initialize = function() {
     this.scene = new THREE.Scene();
-    this.camera = new THREE.OrthographicCamera(-1.25, 1.25, 2.5, 0, 1, 2000);
+    this.camera = new THREE.OrthographicCamera(-100, 100, 100, -100, 1, 2000);
     this.scene.add(this.camera);
     this.light = new THREE.PointLight( 0xfffffa, 1, 0 );
     this.light.position.set( 1, 20, -20 );
@@ -71,6 +71,8 @@ World.prototype.initializeDiv = function() {
     this.canvas = $(this.renderer.domElement).width(400).height(400).addClass("threeCanvas");
     $(this.panel).append(this.canvas);
     $('body').append(this.panel);
+
+    console.log($('body'));
 }
 
 World.prototype.addEntity = function(e) {
