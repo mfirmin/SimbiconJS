@@ -1,38 +1,24 @@
-
-var THREE = require('../lib/three.min.js');
-
 function Entity(name, opts) {
-
-    this.name = name;
-
-    this.position = new THREE.Vector3();
-    this.rotation = new THREE.Quaternion();
-    this.mesh = null;
 
     this.opts = (opts === undefined) ? {} : opts;
 
+    this.name = name;
+
+    this.position = [0,0,0];
+    this.rotation = [0,0,0,0];
+    this.mass = 1;
+
     this.initialize();
-
-//    this.mesh.matrixAutoUpdate = false;
 }
-
 
 Entity.prototype.constructor = Entity;
 
 Entity.prototype.initialize = function() {
-    var rot = (this.opts.default_rotation === undefined) ? [0,0,0,0] : this.opts.default_rotation;
-
-    this.default_rotation = new THREE.Quaternion();
-
-    this.default_rotation.w = rot[0];
-    this.default_rotation.x = rot[1];
-    this.default_rotation.y = rot[2];
-    this.default_rotation.z = rot[3];
-
 }
 
 Entity.prototype.setMfromQandP = function(q_in,p) {
 
+    /*
     var quat = new THREE.Quaternion();
     quat.x = q_in[1]//q_in[1];
     quat.y = q_in[2] //q_in[0];
@@ -54,36 +40,23 @@ Entity.prototype.setMfromQandP = function(q_in,p) {
     this.mesh.matrix.elements[1] = R[1]; this.mesh.matrix.elements[5] = R[4]; this.mesh.matrix.elements[9] =  R[7];  this.mesh.matrix.elements[13] = pos.y;
     this.mesh.matrix.elements[2] = R[2]; this.mesh.matrix.elements[6] = R[5]; this.mesh.matrix.elements[10] = R[8];  this.mesh.matrix.elements[14] = pos.z;
     this.mesh.matrix.elements[3] = 0;    this.mesh.matrix.elements[7] = 0;    this.mesh.matrix.elements[11] = 0;     this.mesh.matrix.elements[15] = 1;
+    */
 
 
 }
 
 Entity.prototype.setPosition = function(xyz) {
-    this.mesh.position.x = xyz[0];
-    this.mesh.position.y = xyz[1];
-    this.mesh.position.z = xyz[2];
+    this.position[0] = xyz[0];
+    this.position[1] = xyz[1];
+    this.position[2] = xyz[2];
+};
 
-
-}
-// TODO: Make this work.
 Entity.prototype.setRotation = function(q) {
-    /*
-
-    var quat = new THREE.Quaternion();
-    quat.x = q[1]//q[1];
-    quat.y =q[2] //q[0];
-    quat.z =q[3]// q[0];
-    quat.w = q[0];
-    quat.normalize();
-    this.mesh.quaternion = quat;
-    this.mesh.updateMatrix();
-
-    console.log(this.mesh.matrix);
-    
-//    this.mesh.rotation.x = Math.PI/4.;
-*/
-    
-}
+    this.rotation[0] = q[0];
+    this.rotation[1] = q[1];
+    this.rotation[2] = q[2];
+    this.rotation[3] = q[3];
+};
 
 Entity.prototype.getPosition = function() {
     return this.position;
