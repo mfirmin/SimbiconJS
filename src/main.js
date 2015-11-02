@@ -46,4 +46,14 @@ $(document).ready(function() {
 
     world.go();
 
+    var i = 0;
+    $('#addbox').click(function() {
+        var box = new Box('box'+(++i), [1,1,1], {
+            mass: 1,
+            color: [0,0,255],
+        });
+        box.setPosition([.5,5,.5]);
+        world.addEntity(box);
+    });
+
 });
