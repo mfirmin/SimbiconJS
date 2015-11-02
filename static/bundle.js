@@ -1144,21 +1144,29 @@ $(document).ready(function() {
     world.go();
 
     var i = 0;
-    $('#addbox').click(function() {
-        var box = new Box('box'+(++i), [1,1,1], {
+    $('#addsphere').click(function() {
+        var sphere = new Sphere('sphere'+(++i), Math.random()*2, {
             mass: 1,
-            color: [0,0,255],
+            color: [Math.floor(Math.random()*255),Math.floor(Math.random()*255),Math.floor(Math.random()*255)],
         });
-        box.setPosition([.5,5,.5]);
+        sphere.setPosition([Math.random()*10-5,Math.random()*10+5,Math.random()*10-5]);
+        world.addEntity(sphere);
+    });
+    $('#addbox').click(function() {
+        var box = new Box('box'+(++i), [Math.random()*2, Math.random()*2, Math.random()*2], {
+            mass: 1,
+            color: [Math.floor(Math.random()*255),Math.floor(Math.random()*255),Math.floor(Math.random()*255)],
+        });
+        box.setPosition([Math.random()*10-5,Math.random()*10+5,Math.random()*10-5]);
         world.addEntity(box);
     });
 
     $('#addcapsule').click(function() {
-        var capsule = new Capsule('capsule'+(++i), 1, 3, {
+        var capsule = new Capsule('capsule'+(++i), Math.random()*2, Math.random()*2, {
             mass: 1,
-            color: [0,255,255],
+            color: [Math.floor(Math.random()*255),Math.floor(Math.random()*255),Math.floor(Math.random()*255)],
         });
-        capsule.setPosition([1,10,-1]);
+        capsule.setPosition([Math.random()*10-5,Math.random()*10+5,Math.random()*10-5]);
         world.addEntity(capsule);
     });
 
