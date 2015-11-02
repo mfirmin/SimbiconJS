@@ -31,41 +31,37 @@ Simulator.prototype.destroy = function() {
       //Ammo.destroy(dynamicsWorld); // XXX gives an error for some reason, |getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(bp,m_dispatcher1);| in btCollisionWorld.cpp throws a 'pure virtual' failure
 };
 
-Simulator.prototype.addStaticEntity = function(e) {
+Simulator.prototype.addEntity = function(e) {
 
-    var groundShape = new Ammo.btBoxShape(new Ammo.btVector3(50, 50, 50));
-
-    var groundTransform = new Ammo.btTransform();
-    groundTransform.setIdentity();
-    groundTransform.setOrigin(new Ammo.btVector3(0, -50, 0));
-
-    var localInertia = new Ammo.btVector3(0, 0, 0);
-
-    var myMotionState = new Ammo.btDefaultMotionState(groundTransform);
-    var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, groundShape, localInertia);
-    var body = new Ammo.btRigidBody(rbInfo);
-
-    this.dynamicsWorld.addRigidBody(body);
-
-};
-
-Simulator.prototype.addDynamicEntity = function(e) {
-    var colShape = new Ammo.btSphereShape(1);
+    var shape;
+    switch (e.getType()) {
+        case 'SPHERE':
+            shape = new Ammo.btSphereShape(e.getRadius());
+            break;
+        case 'BOX':
+            shape = new Ammo.btBoxShape(new Ammo.btVector3(e.sides[0]/2, e.sides[1]/2, e.sides[2]/2));
+            break;
+        default:
+            throw 'Unknown type';
+            
+    }
 
     var startTransform = new Ammo.btTransform();
     startTransform.setIdentity();
 
     var mass = e.mass;
-    var isDynamic = (mass != 0);
+    var isDynamic = (mass !== 0);
 
     var localInertia = new Ammo.btVector3(0, 0, 0);
-    if (isDynamic)
-      colShape.calculateLocalInertia(mass,localInertia);
 
-    startTransform.setOrigin(new Ammo.btVector3(0, 11, 0));
+    if (isDynamic)
+      shape.calculateLocalInertia(mass,localInertia);
+
+    var pos = e.getPosition();
+    startTransform.setOrigin(new Ammo.btVector3(pos[0], pos[1], pos[2]));
   
     var myMotionState = new Ammo.btDefaultMotionState(startTransform);
-    var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, colShape, localInertia);
+    var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
     var body = new Ammo.btRigidBody(rbInfo);
 
     this.dynamicsWorld.addRigidBody(body);

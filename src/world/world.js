@@ -24,7 +24,6 @@ World.prototype.addEntity = function(e, opts) {
     opts['render'] = (opts.render === undefined) ? true : opts.render;
 
     opts['simulate'] = (opts.simulate === undefined) ? true : opts.simulate;
-    opts['dynamic'] = (opts.dynamic === undefined) ? true : opts.dynamic;
     
     var name = e.name;
     if (name in this.entities) {
@@ -37,11 +36,7 @@ World.prototype.addEntity = function(e, opts) {
     }
 
     if (opts.simulate) {
-        if (opts.dynamic) {
-            this.simulator.addDynamicEntity(e);
-        } else {
-            this.simulator.addStaticEntity(e);
-        }
+        this.simulator.addEntity(e);
     }
 
     this.entities[name] = e;

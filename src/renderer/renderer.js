@@ -42,13 +42,13 @@ Renderer.prototype.initializeGL = function() {
 Renderer.prototype.initializeWorld = function() {
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.OrthographicCamera(-20, 20, 20, -20, 1, 2000);
+    this.camera = new THREE.OrthographicCamera(-30, 30, 30, -30, 1, 2000);
     this.scene.add(this.camera);
     this.light = new THREE.PointLight( 0xfffffa, 1, 0 );
-    this.light.position.set( 1, 20, -20 );
+    this.light.position.set(0,0,-50);
     this.scene.add( this.light );
 
-    this.camera.position.z = -20;
+    this.camera.position.z = -30;
     this.camera.lookAt(new THREE.Vector3(0,0,0));
 
 };
@@ -83,6 +83,8 @@ Renderer.prototype.updateEntities = function() {
         var entity = this.entities[name].entity;
         var obj = this.entities[name].object;
 
+        console.log(entity);
+        console.log(obj);
         obj.position.x = entity.position[0];
         obj.position.y = entity.position[1];
         obj.position.z = entity.position[2];
@@ -108,6 +110,26 @@ Renderer.prototype.addSphere = function(e) {
 
 };
 
+Renderer.prototype.addBox = function(e) {
+
+    //var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
+    var cstring = 'rgb(255,0,0)';
+    var color = new THREE.Color(cstring);
+
+    var obj3 = new THREE.Object3D();
+
+    var sides = e.getSides();
+    var geo = new THREE.BoxGeometry(sides[0], sides[1], sides[2]);
+
+    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+    var mesh = new THREE.Mesh( geo , mat );
+
+    obj3.add(mesh);
+
+    return obj3;
+
+};
+
 Renderer.prototype.addEntity = function(e) {
     
     var name = e.name;
@@ -121,6 +143,9 @@ Renderer.prototype.addEntity = function(e) {
     switch (e.getType()) {
         case 'SPHERE':
             obj = this.addSphere(e);
+            break;
+        case 'BOX':
+            obj = this.addBox(e);
             break;
         default:
             break;
