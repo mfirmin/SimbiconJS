@@ -15,14 +15,31 @@ $(document).ready(function() {
     var renderer  = new Renderer();
 
     var world = new World(renderer, simulator, {FPS: FPS});
-    var e = new Sphere('s1', 1, {mass: 1});
-    var ground = new Box('ground', [50,50,50], {mass: 0});
+    var ground = new Box('ground', [50,50,5], {mass: 0});
 
-    e.setPosition([0,11,0]);
+    var e = new Sphere('s1', 1, {
+        mass: 1,
+        color: [255,0,0],
+    });
+    e.setPosition([0,1,0]);
+    world.addEntity(e);
+
+    var e2 = new Sphere('s2', 1, {
+        mass: 1,
+        color: [0,255,0],
+    });
+    e2.setPosition([2,1,0]);
+    world.addEntity(e2);
+
+    var e3 = new Sphere('s3', 1, {
+        mass: 1,
+        color: [0,0,255],
+    });
+    e3.setPosition([1,2,0]);
+    world.addEntity(e3);
 
     ground.setPosition([0,-25,0]);
 
-    world.addEntity(e);
     world.addEntity(ground);
 
     world.go();

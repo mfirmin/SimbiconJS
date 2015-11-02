@@ -7,6 +7,7 @@ function Entity(name, opts) {
     this.position = [0,0,0];
     this.rotation = [0,0,0,0];
     this.mass = (opts.mass === undefined) ? 0 : opts.mass;
+    this.color = (opts.color === undefined) ? [130,130,130] : opts.color;
 
     this.initialize();
 }
