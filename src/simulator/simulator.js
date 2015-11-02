@@ -82,7 +82,10 @@ Simulator.prototype.step = function(dt) {
         if (body.getMotionState()) {
             body.getMotionState().getWorldTransform(trans);
             var pos = [trans.getOrigin().x().toFixed(2), trans.getOrigin().y().toFixed(2), trans.getOrigin().z().toFixed(2)];
+
+            var rot = trans.getRotation();
             entity.setPosition(pos);
+            entity.setRotation([rot.x(), rot.y(), rot.z(), rot.w()]);
         }
     };
 };

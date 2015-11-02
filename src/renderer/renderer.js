@@ -89,6 +89,8 @@ Renderer.prototype.updateEntities = function() {
         obj.position.x = entity.position[0];
         obj.position.y = entity.position[1];
         obj.position.z = entity.position[2];
+
+        obj.rotation.setFromQuaternion(new THREE.Quaternion(entity.rotation[0], entity.rotation[1], entity.rotation[2], entity.rotation[3]));
     }
 };
 
