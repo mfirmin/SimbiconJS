@@ -5,6 +5,7 @@ var Renderer    = require('./renderer/renderer');
 var Simulator   = require('./simulator/simulator');
 var Sphere      = require('./entity/sphere');
 var Box         = require('./entity/box');
+var Capsule     = require('./entity/capsule');
 
 var FPS = 1000/30;
 
@@ -54,6 +55,15 @@ $(document).ready(function() {
         });
         box.setPosition([.5,5,.5]);
         world.addEntity(box);
+    });
+
+    $('#addcapsule').click(function() {
+        var capsule = new Capsule('capsule'+(++i), 1, 3, {
+            mass: 1,
+            color: [0,255,255],
+        });
+        capsule.setPosition([1,10,-1]);
+        world.addEntity(capsule);
     });
 
 });

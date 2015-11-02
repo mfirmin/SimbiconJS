@@ -31,14 +31,13 @@ Box.prototype.getType = function() {
 module.exports = Box;
 
 },{"./entity":4}],2:[function(require,module,exports){
-
-var THREE = require('../lib/three.min.js');
 var Entity = require('./entity');
 
 function Capsule(name, radius, height, opts) {
 
     this.radius = radius;
     this.height = height;
+
     Entity.call(this, name, opts);
 }
 
@@ -49,35 +48,31 @@ Capsule.prototype.constructor = Capsule;
 Capsule.prototype.initialize = function() {
 
     Entity.prototype.initialize.call(this);
-
-    var c = (this.opts.color === undefined) ? [130,130,130] : this.opts.color;
-    var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
-    var color = new THREE.Color(cstring);
-
-    var capsule = new THREE.Object3D();
-
-    var cyl_geo = new THREE.CylinderGeometry(this.radius, this.radius, this.height, 8, 1, true);
-    var sph_geo= new THREE.SphereGeometry(this.radius);
-    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
-
-    var cyl_mesh = new THREE.Mesh( cyl_geo , mat );
-    var top_mesh = new THREE.Mesh( sph_geo , mat );
-    var btm_mesh = new THREE.Mesh( sph_geo , mat );
-
-    top_mesh.position.y = this.height/2.;
-    btm_mesh.position.y = -this.height/2.;
-
-    capsule.add(cyl_mesh);
-    capsule.add(top_mesh);
-    capsule.add(btm_mesh);
-    
-    this.mesh = capsule;
-
 }
+
+Capsule.prototype.getRadius = function() {
+    return this.radius;
+};
+
+Capsule.prototype.setRadius= function(r) {
+    this.radius = r;
+};
+
+Capsule.prototype.getHeight = function() {
+    return this.height;
+};
+
+Capsule.prototype.setHeight= function(h) {
+    this.height = h;
+};
+
+Capsule.prototype.getType = function() {
+    return 'CAPSULE';
+};
 
 module.exports = Capsule;
 
-},{"../lib/three.min.js":7,"./entity":4}],3:[function(require,module,exports){
+},{"./entity":4}],3:[function(require,module,exports){
 
 var THREE = require('../lib/three.min.js');
 var Entity = require('./entity');
@@ -130,36 +125,7 @@ function Entity(name, opts) {
 Entity.prototype.constructor = Entity;
 
 Entity.prototype.initialize = function() {
-}
-
-Entity.prototype.setMfromQandP = function(q_in,p) {
-
-    /*
-    var quat = new THREE.Quaternion();
-    quat.x = q_in[1]//q_in[1];
-    quat.y = q_in[2] //q_in[0];
-    quat.z = q_in[3]// q_in[0];
-    quat.w = q_in[0];
-
-    quat.multiply(this.default_rotation);
-
-    var q = {w: quat.w, v: {x: quat.x, y: quat.y, z: quat.z}};
-    var pos = {x: p[0], y: p[1], z: p[2]};
-
-    var R = new Float32Array(9);
-    var M = new Float32Array(16);
-    R[0] = 1 - 2*q.v.y*q.v.y - 2*q.v.z*q.v.z; R[3] = 2*q.v.x*q.v.y - 2*q.v.z*q.w;     R[6] = 2*q.v.x*q.v.z + 2*q.v.y*q.w;
-    R[1] = 2*q.v.x*q.v.y + 2*q.v.z*q.w;     R[4] = 1 - 2*q.v.x*q.v.x - 2*q.v.z*q.v.z; R[7] = 2*q.v.y*q.v.z - 2*q.v.x*q.w;
-    R[2] = 2*q.v.x*q.v.z - 2*q.v.y*q.w;     R[5] = 2*q.v.y*q.v.z + 2*q.v.x*q.w;     R[8] = 1 - 2*q.v.x*q.v.x - 2*q.v.y*q.v.y;
-
-    this.mesh.matrix.elements[0] = R[0]; this.mesh.matrix.elements[4] = R[3]; this.mesh.matrix.elements[8] =  R[6];  this.mesh.matrix.elements[12] = pos.x;
-    this.mesh.matrix.elements[1] = R[1]; this.mesh.matrix.elements[5] = R[4]; this.mesh.matrix.elements[9] =  R[7];  this.mesh.matrix.elements[13] = pos.y;
-    this.mesh.matrix.elements[2] = R[2]; this.mesh.matrix.elements[6] = R[5]; this.mesh.matrix.elements[10] = R[8];  this.mesh.matrix.elements[14] = pos.z;
-    this.mesh.matrix.elements[3] = 0;    this.mesh.matrix.elements[7] = 0;    this.mesh.matrix.elements[11] = 0;     this.mesh.matrix.elements[15] = 1;
-    */
-
-
-}
+};
 
 Entity.prototype.setPosition = function(xyz) {
     this.position[0] = xyz[0];
@@ -1128,6 +1094,77 @@ THREE.MorphBlendMesh.prototype.update=function(a){for(var b=0,c=this.animationsL
 (this.morphTargetInfluences[d.lastFrame]=0,this.morphTargetInfluences[d.currentFrame]=1*f,this.morphTargetInfluences[g]=0,d.lastFrame=d.currentFrame,d.currentFrame=g);e=d.time%e/e;d.directionBackwards&&(e=1-e);d.currentFrame!==d.lastFrame?(this.morphTargetInfluences[d.currentFrame]=e*f,this.morphTargetInfluences[d.lastFrame]=(1-e)*f):this.morphTargetInfluences[d.currentFrame]=f}}};
 
 },{}],8:[function(require,module,exports){
+var $           = require('jquery');
+
+var World       = require('./world/world');
+var Renderer    = require('./renderer/renderer');
+var Simulator   = require('./simulator/simulator');
+var Sphere      = require('./entity/sphere');
+var Box         = require('./entity/box');
+var Capsule     = require('./entity/capsule');
+
+var FPS = 1000/30;
+
+
+$(document).ready(function() {
+
+    var simulator = new Simulator();
+    var renderer  = new Renderer();
+
+    var world = new World(renderer, simulator, {FPS: FPS});
+    var ground = new Box('ground', [10,5,10], {mass: 0});
+
+    var e = new Sphere('s1', 1, {
+        mass: 1,
+        color: [255,0,0],
+    });
+    e.setPosition([0,1,0]);
+    world.addEntity(e);
+
+    /*
+    var e2 = new Sphere('s2', 1, {
+        mass: 1,
+        color: [0,255,0],
+    });
+    e2.setPosition([2,1,0]);
+    world.addEntity(e2);
+    */
+
+    var e3 = new Box('s3', [1,1,1], {
+        mass: 1,
+        color: [0,0,255],
+    });
+    e3.setPosition([.5,5,.5]);
+    world.addEntity(e3);
+
+    ground.setPosition([0,-2.5,0]);
+
+    world.addEntity(ground);
+
+    world.go();
+
+    var i = 0;
+    $('#addbox').click(function() {
+        var box = new Box('box'+(++i), [1,1,1], {
+            mass: 1,
+            color: [0,0,255],
+        });
+        box.setPosition([.5,5,.5]);
+        world.addEntity(box);
+    });
+
+    $('#addcapsule').click(function() {
+        var capsule = new Capsule('capsule'+(++i), 1, 3, {
+            mass: 1,
+            color: [0,255,255],
+        });
+        capsule.setPosition([1,10,-1]);
+        world.addEntity(capsule);
+    });
+
+});
+
+},{"./entity/box":1,"./entity/capsule":2,"./entity/sphere":6,"./renderer/renderer":9,"./simulator/simulator":10,"./world/world":11,"jquery":12}],9:[function(require,module,exports){
 
 
 var THREE = require('../lib/three.min.js');
@@ -1224,6 +1261,34 @@ Renderer.prototype.updateEntities = function() {
     }
 };
 
+Renderer.prototype.addCapsule = function(e) {
+    var c = e.color;
+    var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
+//    var cstring = 'rgb(255,0,0)';
+    var color = new THREE.Color(cstring);
+
+    var capsule = new THREE.Object3D();
+
+    var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 8, 1, true);
+
+    var sph_geo= new THREE.SphereGeometry(e.getRadius());
+    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+
+    var cyl_mesh = new THREE.Mesh( cyl_geo , mat );
+    var top_mesh = new THREE.Mesh( sph_geo , mat );
+    var btm_mesh = new THREE.Mesh( sph_geo , mat );
+
+    top_mesh.position.y = e.getHeight()/2.;
+    btm_mesh.position.y = -e.getHeight()/2.;
+
+    capsule.add(cyl_mesh);
+    capsule.add(top_mesh);
+    capsule.add(btm_mesh);
+
+    return capsule;
+
+};
+
 Renderer.prototype.addSphere = function(e) {
 
     var c = e.color;
@@ -1282,6 +1347,9 @@ Renderer.prototype.addEntity = function(e) {
         case 'BOX':
             obj = this.addBox(e);
             break;
+        case 'CAPSULE':
+            obj = this.addCapsule(e);
+            break;
         default:
             break;
     }
@@ -1294,7 +1362,7 @@ Renderer.prototype.addEntity = function(e) {
 
 module.exports = Renderer;
 
-},{"../entity/box":1,"../entity/capsule":2,"../entity/cylinder":3,"../entity/plane":5,"../entity/sphere":6,"../lib/three.min.js":7}],9:[function(require,module,exports){
+},{"../entity/box":1,"../entity/capsule":2,"../entity/cylinder":3,"../entity/plane":5,"../entity/sphere":6,"../lib/three.min.js":7}],10:[function(require,module,exports){
 
 function Simulator(opts) {
 
@@ -1337,6 +1405,9 @@ Simulator.prototype.addEntity = function(e) {
             break;
         case 'BOX':
             shape = new Ammo.btBoxShape(new Ammo.btVector3(e.sides[0]/2, e.sides[1]/2, e.sides[2]/2));
+            break;
+        case 'CAPSULE':
+            shape = new Ammo.btCapsuleShape(e.getRadius(), e.getHeight());
             break;
         default:
             throw 'Unknown type';
@@ -1390,7 +1461,7 @@ Simulator.prototype.step = function(dt) {
 module.exports = Simulator;
 
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var Box      = require('../entity/box');
 var Cylinder = require('../entity/cylinder');
 var Sphere   = require('../entity/sphere');
@@ -1475,7 +1546,7 @@ World.prototype.step = function(elapsed) {
 
 module.exports = World;
 
-},{"../entity/box":1,"../entity/capsule":2,"../entity/cylinder":3,"../entity/plane":5,"../entity/sphere":6}],11:[function(require,module,exports){
+},{"../entity/box":1,"../entity/capsule":2,"../entity/cylinder":3,"../entity/plane":5,"../entity/sphere":6}],12:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -10687,65 +10758,4 @@ return jQuery;
 
 }));
 
-},{}],12:[function(require,module,exports){
-var $           = require('jquery');
-
-var World       = require('./world/world');
-var Renderer    = require('./renderer/renderer');
-var Simulator   = require('./simulator/simulator');
-var Sphere      = require('./entity/sphere');
-var Box         = require('./entity/box');
-
-var FPS = 1000/30;
-
-
-$(document).ready(function() {
-
-    var simulator = new Simulator();
-    var renderer  = new Renderer();
-
-    var world = new World(renderer, simulator, {FPS: FPS});
-    var ground = new Box('ground', [10,5,10], {mass: 0});
-
-    var e = new Sphere('s1', 1, {
-        mass: 1,
-        color: [255,0,0],
-    });
-    e.setPosition([0,1,0]);
-    world.addEntity(e);
-
-    /*
-    var e2 = new Sphere('s2', 1, {
-        mass: 1,
-        color: [0,255,0],
-    });
-    e2.setPosition([2,1,0]);
-    world.addEntity(e2);
-    */
-
-    var e3 = new Box('s3', [1,1,1], {
-        mass: 1,
-        color: [0,0,255],
-    });
-    e3.setPosition([.5,5,.5]);
-    world.addEntity(e3);
-
-    ground.setPosition([0,-2.5,0]);
-
-    world.addEntity(ground);
-
-    world.go();
-
-    var i = 0;
-    $('#addbox').click(function() {
-        var box = new Box('box'+(++i), [1,1,1], {
-            mass: 1,
-            color: [0,0,255],
-        });
-        box.setPosition([.5,5,.5]);
-        world.addEntity(box);
-    });
-
-});
-
-},{"./entity/box":1,"./entity/sphere":6,"./renderer/renderer":8,"./simulator/simulator":9,"./world/world":10,"jquery":11}]},{},[12]);
+},{}]},{},[8]);
