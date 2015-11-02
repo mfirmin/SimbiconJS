@@ -42,12 +42,15 @@ Renderer.prototype.initializeGL = function() {
 Renderer.prototype.initializeWorld = function() {
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.OrthographicCamera(-20, 20, 20, -20, 1, 2000);
+    //this.camera = new THREE.OrthographicCamera(-20, 20, 20, -20, 1, 2000);
+    this.camera = new THREE.PerspectiveCamera(45, 1, 1, 2000);
     this.scene.add(this.camera);
     this.light = new THREE.PointLight( 0xfffffa, 1, 0 );
-    this.light.position.set(0,0,-50);
+    this.light.position.set(20,20,-20);
     this.scene.add( this.light );
 
+    this.camera.position.x = 20;
+    this.camera.position.y = 20;
     this.camera.position.z = -20;
     this.camera.lookAt(new THREE.Vector3(0,0,0));
 

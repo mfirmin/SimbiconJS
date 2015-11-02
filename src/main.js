@@ -15,7 +15,7 @@ $(document).ready(function() {
     var renderer  = new Renderer();
 
     var world = new World(renderer, simulator, {FPS: FPS});
-    var ground = new Box('ground', [50,50,5], {mass: 0});
+    var ground = new Box('ground', [10,5,10], {mass: 0});
 
     var e = new Sphere('s1', 1, {
         mass: 1,
@@ -38,7 +38,7 @@ $(document).ready(function() {
     e3.setPosition([1,2,0]);
     world.addEntity(e3);
 
-    ground.setPosition([0,-25,0]);
+    ground.setPosition([0,-2.5,0]);
 
     world.addEntity(ground);
 
