@@ -74,13 +74,13 @@ module.exports = Capsule;
 
 },{"./entity":4}],3:[function(require,module,exports){
 
-var THREE = require('../lib/three.min.js');
 var Entity = require('./entity');
 
 function Cylinder(name, radius, height, opts) {
 
     this.radius = radius;
     this.height = height;
+
     Entity.call(this, name, opts);
 }
 
@@ -91,23 +91,31 @@ Cylinder.prototype.constructor = Cylinder;
 Cylinder.prototype.initialize = function() {
 
     Entity.prototype.initialize.call(this);
-
-    var c = (this.opts.color === undefined) ? [130,130,130] : this.opts.color;
-    var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
-    var color = new THREE.Color(cstring);
-
-    var geo = new THREE.CylinderGeometry(this.radius, this.radius, this.height);
-
-    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
-    var mesh = new THREE.Mesh( geo , mat );
-
-    this.mesh = mesh;
-
 }
+
+Cylinder.prototype.getRadius = function() {
+    return this.radius;
+};
+
+Cylinder.prototype.setRadius= function(r) {
+    this.radius = r;
+};
+
+Cylinder.prototype.getHeight = function() {
+    return this.height;
+};
+
+Cylinder.prototype.setHeight= function(h) {
+    this.height = h;
+};
+
+Cylinder.prototype.getType = function() {
+    return 'CYLINDER';
+};
 
 module.exports = Cylinder;
 
-},{"../lib/three.min.js":7,"./entity":4}],4:[function(require,module,exports){
+},{"./entity":4}],4:[function(require,module,exports){
 function Entity(name, opts) {
 
     this.opts = (opts === undefined) ? {} : opts;
@@ -1102,6 +1110,7 @@ var Simulator   = require('./simulator/simulator');
 var Sphere      = require('./entity/sphere');
 var Box         = require('./entity/box');
 var Capsule     = require('./entity/capsule');
+var Cylinder    = require('./entity/cylinder');
 
 var FPS = 1000/30;
 
@@ -1121,16 +1130,7 @@ $(document).ready(function() {
     e.setPosition([0,1,0]);
     world.addEntity(e);
 
-    /*
-    var e2 = new Sphere('s2', 1, {
-        mass: 1,
-        color: [0,255,0],
-    });
-    e2.setPosition([2,1,0]);
-    world.addEntity(e2);
-    */
-
-    var e3 = new Box('s3', [1,1,1], {
+    var e3 = new Cylinder('s3', 1, 5, {
         mass: 1,
         color: [0,0,255],
     });
@@ -1161,6 +1161,15 @@ $(document).ready(function() {
         world.addEntity(box);
     });
 
+    $('#addcylinder').click(function() {
+        var cylinder = new Cylinder('cylinder'+(++i), Math.random()*2, Math.random()*2, {
+            mass: 1,
+            color: [Math.floor(Math.random()*255),Math.floor(Math.random()*255),Math.floor(Math.random()*255)],
+        });
+        cylinder.setPosition([Math.random()*10-5,Math.random()*10+5,Math.random()*10-5]);
+        world.addEntity(cylinder);
+    });
+
     $('#addcapsule').click(function() {
         var capsule = new Capsule('capsule'+(++i), Math.random()*2, Math.random()*2, {
             mass: 1,
@@ -1172,7 +1181,7 @@ $(document).ready(function() {
 
 });
 
-},{"./entity/box":1,"./entity/capsule":2,"./entity/sphere":6,"./renderer/renderer":9,"./simulator/simulator":10,"./world/world":11,"jquery":12}],9:[function(require,module,exports){
+},{"./entity/box":1,"./entity/capsule":2,"./entity/cylinder":3,"./entity/sphere":6,"./renderer/renderer":9,"./simulator/simulator":10,"./world/world":11,"jquery":12}],9:[function(require,module,exports){
 
 
 var THREE = require('../lib/three.min.js');
@@ -1269,6 +1278,26 @@ Renderer.prototype.updateEntities = function() {
     }
 };
 
+Renderer.prototype.addCylinder = function(e) {
+    var c = e.color;
+    var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
+//    var cstring = 'rgb(255,0,0)';
+    var color = new THREE.Color(cstring);
+
+    var cylinder = new THREE.Object3D();
+
+    var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 8, 1, false);
+
+    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+
+    var cyl_mesh = new THREE.Mesh( cyl_geo , mat );
+
+    cylinder.add(cyl_mesh);
+
+    return cylinder;
+
+};
+
 Renderer.prototype.addCapsule = function(e) {
     var c = e.color;
     var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
@@ -1358,6 +1387,9 @@ Renderer.prototype.addEntity = function(e) {
         case 'CAPSULE':
             obj = this.addCapsule(e);
             break;
+        case 'CYLINDER':
+            obj = this.addCylinder(e);
+            break;
         default:
             break;
     }
@@ -1416,6 +1448,9 @@ Simulator.prototype.addEntity = function(e) {
             break;
         case 'CAPSULE':
             shape = new Ammo.btCapsuleShape(e.getRadius(), e.getHeight());
+            break;
+        case 'CYLINDER':
+            shape = new Ammo.btCylinderShape(new Ammo.btVector3(e.getRadius(), e.getHeight()/2., e.getRadius()));
             break;
         default:
             throw 'Unknown type';

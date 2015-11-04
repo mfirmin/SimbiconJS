@@ -6,6 +6,7 @@ var Simulator   = require('./simulator/simulator');
 var Sphere      = require('./entity/sphere');
 var Box         = require('./entity/box');
 var Capsule     = require('./entity/capsule');
+var Cylinder    = require('./entity/cylinder');
 
 var FPS = 1000/30;
 
@@ -25,16 +26,7 @@ $(document).ready(function() {
     e.setPosition([0,1,0]);
     world.addEntity(e);
 
-    /*
-    var e2 = new Sphere('s2', 1, {
-        mass: 1,
-        color: [0,255,0],
-    });
-    e2.setPosition([2,1,0]);
-    world.addEntity(e2);
-    */
-
-    var e3 = new Box('s3', [1,1,1], {
+    var e3 = new Cylinder('s3', 1, 5, {
         mass: 1,
         color: [0,0,255],
     });
@@ -63,6 +55,15 @@ $(document).ready(function() {
         });
         box.setPosition([Math.random()*10-5,Math.random()*10+5,Math.random()*10-5]);
         world.addEntity(box);
+    });
+
+    $('#addcylinder').click(function() {
+        var cylinder = new Cylinder('cylinder'+(++i), Math.random()*2, Math.random()*2, {
+            mass: 1,
+            color: [Math.floor(Math.random()*255),Math.floor(Math.random()*255),Math.floor(Math.random()*255)],
+        });
+        cylinder.setPosition([Math.random()*10-5,Math.random()*10+5,Math.random()*10-5]);
+        world.addEntity(cylinder);
     });
 
     $('#addcapsule').click(function() {
