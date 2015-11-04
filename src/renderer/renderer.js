@@ -102,7 +102,7 @@ Renderer.prototype.addCylinder = function(e) {
 
     var cylinder = new THREE.Object3D();
 
-    var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 8, 1, false);
+    var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 32, 4, false);
 
     var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
 
@@ -122,9 +122,9 @@ Renderer.prototype.addCapsule = function(e) {
 
     var capsule = new THREE.Object3D();
 
-    var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 8, 1, true);
+    var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 32, 4, true);
 
-    var sph_geo= new THREE.SphereGeometry(e.getRadius());
+    var sph_geo= new THREE.SphereGeometry(e.getRadius(), 32, 32);
     var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
 
     var cyl_mesh = new THREE.Mesh( cyl_geo , mat );
@@ -151,7 +151,7 @@ Renderer.prototype.addSphere = function(e) {
 
     var obj3 = new THREE.Object3D();
 
-    var geo = new THREE.SphereGeometry(e.getRadius());
+    var geo = new THREE.SphereGeometry(e.getRadius(), 32, 32);
 
     var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
     var mesh = new THREE.Mesh( geo , mat );
