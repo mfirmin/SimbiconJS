@@ -26,14 +26,32 @@ $(document).ready(function() {
     e.setPosition([0,1,0]);
     world.addEntity(e);
 
-    var e3 = new Cylinder('s3', 1, 5, {
+    var box1 = new Box('box1', [1,1,1], {
         mass: 1,
         color: [0,0,255],
     });
-    e3.setPosition([.5,5,.5]);
-    world.addEntity(e3);
+    box1.setPosition([.5,10,.5]);
+    world.addEntity(box1);
 
-    world.simulator.addJoint(undefined, 's3', [.5,.5,.5]);
+    world.simulator.addJoint('pt2wall', {'A': 'box1'}, [-.5,.5,-.5]);
+
+    var box2 = new Box('box2', [1,1,1], {
+        mass: 1,
+        color: [0,0,255],
+    });
+    box2.setPosition([1.5,10,.5]);
+    world.addEntity(box2);
+
+    world.simulator.addJoint('pt2pt', {'A': 'box1', 'B': 'box2'}, [.5,-.5,.5], [-.5, -.5, .5]);
+
+    var box3 = new Box('box3', [1,1,1], {
+        mass: 1,
+        color: [0,0,255],
+    });
+    box3.setPosition([2.5,10,.5]);
+    world.addEntity(box3);
+
+    world.simulator.addJoint('pt2pt', {'A': 'box2', 'B': 'box3'}, [.5,.5,-.5], [-.5, .5, -.5]);
 
     ground.setPosition([0,-2.5,0]);
 

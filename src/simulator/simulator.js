@@ -31,10 +31,14 @@ Simulator.prototype.destroy = function() {
       //Ammo.destroy(dynamicsWorld); // XXX gives an error for some reason, |getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(bp,m_dispatcher1);| in btCollisionWorld.cpp throws a 'pure virtual' failure
 };
 
-Simulator.prototype.addJoint = function(j, eName, pos) {
+Simulator.prototype.addJoint = function(j, eName, pos, posB) {
 
-    console.log(this.entities[eName]);
-    var joint = new Ammo.btPoint2PointConstraint(this.entities[eName].body, new Ammo.btVector3(pos[0], pos[1], pos[2]));
+    var joint;
+    if (j === 'pt2wall') {
+        joint = new Ammo.btPoint2PointConstraint(this.entities[eName.A].body, new Ammo.btVector3(pos[0], pos[1], pos[2]));
+    } else if (j === 'pt2pt') {
+        joint = new Ammo.btPoint2PointConstraint(this.entities[eName.A].body, this.entities[eName.B].body, new Ammo.btVector3(pos[0], pos[1], pos[2]), new Ammo.btVector3(posB[0], posB[1], posB[2]));;
+    }
 
     this.dynamicsWorld.addConstraint(joint);
 
