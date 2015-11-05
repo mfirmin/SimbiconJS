@@ -52,6 +52,12 @@ Simulator.prototype.addEntity = function(e) {
         case 'BOX':
             shape = new Ammo.btBoxShape(new Ammo.btVector3(e.sides[0]/2, e.sides[1]/2, e.sides[2]/2));
             break;
+        case 'CAPSULE':
+            shape = new Ammo.btCapsuleShape(e.getRadius(), e.getHeight());
+            break;
+        case 'CYLINDER':
+            shape = new Ammo.btCylinderShape(new Ammo.btVector3(e.getRadius(), e.getHeight()/2., e.getRadius()));
+            break;
         default:
             throw 'Unknown type';
             

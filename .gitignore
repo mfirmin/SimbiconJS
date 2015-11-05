@@ -1,1 +1,6 @@
 _site
+*.swp
+*.un~
+*.un
+npm-debug.log
+node_modules

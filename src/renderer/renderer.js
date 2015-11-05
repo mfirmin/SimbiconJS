@@ -94,6 +94,54 @@ Renderer.prototype.updateEntities = function() {
     }
 };
 
+Renderer.prototype.addCylinder = function(e) {
+    var c = e.color;
+    var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
+//    var cstring = 'rgb(255,0,0)';
+    var color = new THREE.Color(cstring);
+
+    var cylinder = new THREE.Object3D();
+
+    var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 32, 4, false);
+
+    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+
+    var cyl_mesh = new THREE.Mesh( cyl_geo , mat );
+
+    cylinder.add(cyl_mesh);
+
+    return cylinder;
+
+};
+
+Renderer.prototype.addCapsule = function(e) {
+    var c = e.color;
+    var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
+//    var cstring = 'rgb(255,0,0)';
+    var color = new THREE.Color(cstring);
+
+    var capsule = new THREE.Object3D();
+
+    var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 32, 4, true);
+
+    var sph_geo= new THREE.SphereGeometry(e.getRadius(), 32, 32);
+    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+
+    var cyl_mesh = new THREE.Mesh( cyl_geo , mat );
+    var top_mesh = new THREE.Mesh( sph_geo , mat );
+    var btm_mesh = new THREE.Mesh( sph_geo , mat );
+
+    top_mesh.position.y = e.getHeight()/2.;
+    btm_mesh.position.y = -e.getHeight()/2.;
+
+    capsule.add(cyl_mesh);
+    capsule.add(top_mesh);
+    capsule.add(btm_mesh);
+
+    return capsule;
+
+};
+
 Renderer.prototype.addSphere = function(e) {
 
     var c = e.color;
@@ -103,7 +151,7 @@ Renderer.prototype.addSphere = function(e) {
 
     var obj3 = new THREE.Object3D();
 
-    var geo = new THREE.SphereGeometry(e.getRadius());
+    var geo = new THREE.SphereGeometry(e.getRadius(), 32, 32);
 
     var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
     var mesh = new THREE.Mesh( geo , mat );
@@ -151,6 +199,12 @@ Renderer.prototype.addEntity = function(e) {
             break;
         case 'BOX':
             obj = this.addBox(e);
+            break;
+        case 'CAPSULE':
+            obj = this.addCapsule(e);
+            break;
+        case 'CYLINDER':
+            obj = this.addCylinder(e);
             break;
         default:
             break;
