@@ -40,6 +40,8 @@ $(document).ready(function() {
     e3.setPosition([.5,5,.5]);
     world.addEntity(e3);
 
+    world.simulator.addJoint(undefined, 's3', [.5,.5,.5]);
+
     ground.setPosition([0,-2.5,0]);
 
     world.addEntity(ground);

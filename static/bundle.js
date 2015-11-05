@@ -1328,6 +1328,17 @@ Simulator.prototype.destroy = function() {
       //Ammo.destroy(dynamicsWorld); // XXX gives an error for some reason, |getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(bp,m_dispatcher1);| in btCollisionWorld.cpp throws a 'pure virtual' failure
 };
 
+Simulator.prototype.addJoint = function(j, eName, pos) {
+
+    console.log(this.entities[eName]);
+    var joint = new Ammo.btPoint2PointConstraint(this.entities[eName].body, new Ammo.btVector3(pos[0], pos[1], pos[2]));
+
+    this.dynamicsWorld.addConstraint(joint);
+
+//    this.dynamicsWorld.addJoint(
+
+};
+
 Simulator.prototype.addEntity = function(e) {
 
     var shape;
@@ -10729,6 +10740,8 @@ $(document).ready(function() {
     });
     e3.setPosition([.5,5,.5]);
     world.addEntity(e3);
+
+    world.simulator.addJoint(undefined, 's3', [.5,.5,.5]);
 
     ground.setPosition([0,-2.5,0]);
 
