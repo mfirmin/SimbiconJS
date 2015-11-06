@@ -14,6 +14,7 @@ function World(renderer, simulator, opts) {
     this.FPS = (opts.FPS === undefined) ? 1000/30. : opts.FPS;
 
     this.entities = {};
+    this.joints   = {};
 }
 
 World.prototype.constructor = World;

@@ -31,13 +31,63 @@ Simulator.prototype.destroy = function() {
       //Ammo.destroy(dynamicsWorld); // XXX gives an error for some reason, |getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(bp,m_dispatcher1);| in btCollisionWorld.cpp throws a 'pure virtual' failure
 };
 
-Simulator.prototype.addJoint = function(j, eName, pos, posB) {
+Simulator.prototype.addJoint = function(j) {
 
     var joint;
-    if (j === 'pt2wall') {
-        joint = new Ammo.btPoint2PointConstraint(this.entities[eName.A].body, new Ammo.btVector3(pos[0], pos[1], pos[2]));
-    } else if (j === 'pt2pt') {
-        joint = new Ammo.btPoint2PointConstraint(this.entities[eName.A].body, this.entities[eName.B].body, new Ammo.btVector3(pos[0], pos[1], pos[2]), new Ammo.btVector3(posB[0], posB[1], posB[2]));;
+    var type = j.getType();
+    if (type === 'BALL') {
+        var pos = j.getPosition();
+        var posA = this.entities[j.A].entity.getPosition();
+        var jointPosInA = [pos[0] - posA[0], pos[1] - posA[1], pos[2] - posA[2]];
+        if (j.B === undefined) {
+            joint = new Ammo.btPoint2PointConstraint(this.entities[j.A].body, new Ammo.btVector3(jointPosInA[0], jointPosInA[1], jointPosInA[2]));
+        }
+    } else if (type === 'HINGE') {
+        var axis = j.axis;
+        var pos = j.getPosition();
+        var posA = this.entities[j.A].entity.getPosition();
+        var jointPosInA = [pos[0] - posA[0], pos[1] - posA[1], pos[2] - posA[2]];
+
+        if (j.B !== undefined) {
+            var posB = this.entities[j.B].entity.getPosition();
+            var jointPosInB = [pos[0] - posB[0], pos[1] - posB[1], pos[2] - posB[2]];
+            console.log(jointPosInA);
+            console.log(jointPosInB);
+            joint = new Ammo.btHingeConstraint(
+                this.entities[j.A].body, 
+                this.entities[j.B].body, 
+                new Ammo.btVector3(jointPosInA[0],jointPosInA[1],jointPosInA[2]), 
+                new Ammo.btVector3(jointPosInB[0],jointPosInB[1],jointPosInB[2]), 
+                new Ammo.btVector3(j.axis[0], j.axis[1], j.axis[2]),
+                new Ammo.btVector3(j.axis[0], j.axis[1], j.axis[2]),
+                false
+            );
+        } else {
+            /*
+            var pivot = new Ammo.btVector3(jointPosInA[0],jointPosInA[1],jointPosInA[2]); 
+            var q = new Ammo.btQuaternion(0, 0, 0, 1);
+            q.setRotation(new Ammo.btVector3(j.axis[0], j.axis[1], j.axis[2]), 0);
+
+            var t = new Ammo.btTransform();
+            t.setIdentity();
+            t.setRotation(q);
+            t.setOrigin(pivot);
+
+            joint = new Ammo.btHingeConstraint(
+                this.entities[j.A].body, 
+                t
+            );
+            */
+
+            joint = new Ammo.btHingeConstraint(
+                this.entities[j.A].body, 
+                new Ammo.btVector3(jointPosInA[0],jointPosInA[1],jointPosInA[2]), 
+                new Ammo.btVector3(j.axis[0], j.axis[1], j.axis[2]),
+                false
+            );
+            console.log(joint);
+        }
+
     }
 
     this.dynamicsWorld.addConstraint(joint);

@@ -7,6 +7,8 @@ var Sphere      = require('./entity/sphere');
 var Box         = require('./entity/box');
 var Capsule     = require('./entity/capsule');
 var Cylinder    = require('./entity/cylinder');
+var Hinge       = require('./joints/hinge');
+var Ball        = require('./joints/ball');
 
 var FPS = 1000/30;
 
@@ -19,31 +21,31 @@ $(document).ready(function() {
     var world = new World(renderer, simulator, {FPS: FPS});
     var ground = new Box('ground', [10,5,10], {mass: 0});
 
-    var e = new Sphere('s1', 1, {
-        mass: 1,
-        color: [255,0,0],
-    });
-    e.setPosition([0,1,0]);
-    world.addEntity(e);
-
     var box1 = new Box('box1', [1,1,1], {
         mass: 1,
         color: [0,0,255],
     });
-    box1.setPosition([.5,10,.5]);
+    box1.setPosition([.5,5,.5]);
     world.addEntity(box1);
 
-    world.simulator.addJoint('pt2wall', {'A': 'box1'}, [-.5,.5,-.5]);
+    /*
+    var b1_world = new Hinge('b1_world', {'A': 'box1'}, [0, 5.5, 0], [0,0,1]);
+    world.addJoint(b1_world);
+    */
+    var b1_world = new Ball('b1_world', {'A': 'box1'}, [0, 5.5, 0]);
+    world.addJoint(b1_world);
 
     var box2 = new Box('box2', [1,1,1], {
         mass: 1,
         color: [0,0,255],
     });
-    box2.setPosition([1.5,10,.5]);
+    box2.setPosition([1.5,5,.5]);
     world.addEntity(box2);
 
-    world.simulator.addJoint('pt2pt', {'A': 'box1', 'B': 'box2'}, [.5,-.5,.5], [-.5, -.5, .5]);
+    var b1_b2 = new Hinge('b1_b2', {'A': 'box1', 'B': 'box2'}, [1, 4.5, .5], [0,0,1]);
+    world.addJoint(b1_b2);
 
+    /*
     var box3 = new Box('box3', [1,1,1], {
         mass: 1,
         color: [0,0,255],
@@ -52,6 +54,7 @@ $(document).ready(function() {
     world.addEntity(box3);
 
     world.simulator.addJoint('pt2pt', {'A': 'box2', 'B': 'box3'}, [.5,.5,-.5], [-.5, .5, -.5]);
+    */
 
     ground.setPosition([0,-2.5,0]);
 
