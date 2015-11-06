@@ -18,6 +18,22 @@ function World(renderer, simulator, opts) {
 
 World.prototype.constructor = World;
 
+World.prototype.addJoint = function(j, opts) {
+    opts = (opts === undefined) ? {} : opts;
+    opts['render'] = (opts.render === undefined) ? false: opts.render;
+
+    var name = j.name;
+    if (name in this.entities) {
+        console.error('Cannot add entity. Entity with name ' + name + 'already exists.');
+        return -1;
+    }
+
+    this.simulator.addJoint(j);
+
+    this.joints[name] = j;
+
+};
+
 World.prototype.addEntity = function(e, opts) {
 
     opts = (opts === undefined) ? {} : opts;
