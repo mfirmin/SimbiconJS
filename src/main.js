@@ -20,7 +20,49 @@ $(document).ready(function() {
 
     var world = new World(renderer, simulator, {FPS: FPS});
     var ground = new Box('ground', [10,5,10], {mass: 0});
+    ground.setPosition([0,-2.5,0]);
+    world.addEntity(ground);
 
+    // MAKE HUMAN!
+
+    for (var e in human.parts) {
+        var eInfo = human.parts[e];
+
+        var entity;
+        switch (eInfo.type) {
+            case "SPHERE": 
+                entity = new Sphere(e, eInfo.radius, { "mass": eInfo.mass });
+                break;
+            case "CAPSULE": 
+                entity = new Capsule(e, (eInfo.radiusTop + eInfo.radiusBottom)/2, eInfo.height, {"mass": eInfo.mass});
+                break;
+            case "BOX":
+                entity = new Box(e, eInfo.sides, { "mass": eInfo.mass });
+                break;
+            default:
+                throw "Unknown Entity type: " + eInfo.type;
+        }
+        entity.setPosition(eInfo.position);
+        world.addEntity(entity);
+    }
+
+    for (var j in human.joints) {
+        var jInfo = human.joints[j];
+
+        var joint;
+        switch(jInfo.type) {
+            case "HINGE":
+                joint = new Hinge(j, {"A": jInfo.A, "B": jInfo.B}, jInfo.position, jInfo.axis);
+                break;
+            default:
+                throw "Unknown Joint type: " + jInfo.type;
+        }
+        world.addJoint(joint);
+    }
+
+    world.go();
+
+    /*
     var box1 = new Box('box1', [1,1,1], {
         mass: 1,
         color: [0,0,255],
@@ -28,10 +70,6 @@ $(document).ready(function() {
     box1.setPosition([.5,5,.5]);
     world.addEntity(box1);
 
-    /*
-    var b1_world = new Hinge('b1_world', {'A': 'box1'}, [0, 5.5, 0], [0,0,1]);
-    world.addJoint(b1_world);
-    */
     var b1_world = new Ball('b1_world', {'A': 'box1'}, [0, 5.5, 0]);
     world.addJoint(b1_world);
 
@@ -44,58 +82,6 @@ $(document).ready(function() {
 
     var b1_b2 = new Hinge('b1_b2', {'A': 'box1', 'B': 'box2'}, [1, 4.5, .5], [0,0,1]);
     world.addJoint(b1_b2);
-
-    /*
-    var box3 = new Box('box3', [1,1,1], {
-        mass: 1,
-        color: [0,0,255],
-    });
-    box3.setPosition([2.5,10,.5]);
-    world.addEntity(box3);
-
-    world.simulator.addJoint('pt2pt', {'A': 'box2', 'B': 'box3'}, [.5,.5,-.5], [-.5, .5, -.5]);
     */
-
-    ground.setPosition([0,-2.5,0]);
-
-    world.addEntity(ground);
-
-    world.go();
-
-    var i = 0;
-    $('#addsphere').click(function() {
-        var sphere = new Sphere('sphere'+(++i), Math.random()*2, {
-            mass: 1,
-            color: [Math.floor(Math.random()*255),Math.floor(Math.random()*255),Math.floor(Math.random()*255)],
-        });
-        sphere.setPosition([Math.random()*10-5,Math.random()*10+5,Math.random()*10-5]);
-        world.addEntity(sphere);
-    });
-    $('#addbox').click(function() {
-        var box = new Box('box'+(++i), [Math.random()*2, Math.random()*2, Math.random()*2], {
-            mass: 1,
-            color: [Math.floor(Math.random()*255),Math.floor(Math.random()*255),Math.floor(Math.random()*255)],
-        });
-        box.setPosition([Math.random()*10-5,Math.random()*10+5,Math.random()*10-5]);
-        world.addEntity(box);
-    });
-
-    $('#addcylinder').click(function() {
-        var cylinder = new Cylinder('cylinder'+(++i), Math.random()*2, Math.random()*2, {
-            mass: 1,
-            color: [Math.floor(Math.random()*255),Math.floor(Math.random()*255),Math.floor(Math.random()*255)],
-        });
-        cylinder.setPosition([Math.random()*10-5,Math.random()*10+5,Math.random()*10-5]);
-        world.addEntity(cylinder);
-    });
-
-    $('#addcapsule').click(function() {
-        var capsule = new Capsule('capsule'+(++i), Math.random()*2, Math.random()*2, {
-            mass: 1,
-            color: [Math.floor(Math.random()*255),Math.floor(Math.random()*255),Math.floor(Math.random()*255)],
-        });
-        capsule.setPosition([Math.random()*10-5,Math.random()*10+5,Math.random()*10-5]);
-        world.addEntity(capsule);
-    });
 
 });

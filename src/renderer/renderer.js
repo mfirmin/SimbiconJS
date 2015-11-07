@@ -49,10 +49,10 @@ Renderer.prototype.initializeWorld = function() {
     this.light.position.set(20,20,-20);
     this.scene.add( this.light );
 
-    this.camera.position.x = 20;
-    this.camera.position.y = 20;
-    this.camera.position.z = -20;
-    this.camera.lookAt(new THREE.Vector3(0,0,0));
+    this.camera.position.x = 0;
+    this.camera.position.y = 1;
+    this.camera.position.z = -5;
+    this.camera.lookAt(new THREE.Vector3(0,1,0));
 
 };
 

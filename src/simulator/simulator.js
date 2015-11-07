@@ -51,8 +51,6 @@ Simulator.prototype.addJoint = function(j) {
         if (j.B !== undefined) {
             var posB = this.entities[j.B].entity.getPosition();
             var jointPosInB = [pos[0] - posB[0], pos[1] - posB[1], pos[2] - posB[2]];
-            console.log(jointPosInA);
-            console.log(jointPosInB);
             joint = new Ammo.btHingeConstraint(
                 this.entities[j.A].body, 
                 this.entities[j.B].body, 
