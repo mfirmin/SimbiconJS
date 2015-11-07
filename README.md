@@ -3,4 +3,4 @@ My attempt to implement a web-based version of SIMple BIped locomotion CONtrol (
 
 The underlying physics engine is [Ammo.js](https://github.com/kripken/ammo.js/) (The JS version of [Bullet](http://bulletphysics.org/wordpress/))
 
-[Demo](mfirmin.github.io/SimbiconJS) (In progress...)
+[Demo](http://mfirmin.github.io/SimbiconJS) (In progress...)
