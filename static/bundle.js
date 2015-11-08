@@ -262,7 +262,7 @@ module.exports = Ball;
 },{"./joint":9}],8:[function(require,module,exports){
 var Joint = require('./joint');
 
-function Hinge(name, entityNames, pos, axis) {
+function Hinge(name, entityNames, pos, axis, limits) {
 
     Joint.call(this, name);
 
@@ -271,6 +271,11 @@ function Hinge(name, entityNames, pos, axis) {
 
     this.position = pos;
     this.axis = axis;
+
+    limits = (limits === undefined) ? {} : limits;
+
+    this.lo = limits.lo;
+    this.hi = limits.hi;
 
 }
 
@@ -1469,21 +1474,9 @@ Simulator.prototype.addJoint = function(j) {
                 false
             );
         } else {
-            /*
-            var pivot = new Ammo.btVector3(jointPosInA[0],jointPosInA[1],jointPosInA[2]); 
-            var q = new Ammo.btQuaternion(0, 0, 0, 1);
-            q.setRotation(new Ammo.btVector3(j.axis[0], j.axis[1], j.axis[2]), 0);
 
-            var t = new Ammo.btTransform();
-            t.setIdentity();
-            t.setRotation(q);
-            t.setOrigin(pivot);
-
-            joint = new Ammo.btHingeConstraint(
-                this.entities[j.A].body, 
-                t
-            );
-            */
+            // TODO: FIX ME?
+            // THIS DOESNT WORK 
 
             joint = new Ammo.btHingeConstraint(
                 this.entities[j.A].body, 
@@ -1491,14 +1484,16 @@ Simulator.prototype.addJoint = function(j) {
                 new Ammo.btVector3(j.axis[0], j.axis[1], j.axis[2]),
                 false
             );
-            console.log(joint);
+        }
+
+        if (j.lo !== undefined) {
+            joint.setLimit(j.lo*Math.PI/180, j.hi*Math.PI/180, 1.0, 1.0, 0.0);
+//            joint.setLimit(-0.1, 0.1, 0.8, .3, .9);
         }
 
     }
 
     this.dynamicsWorld.addConstraint(joint);
-
-//    this.dynamicsWorld.addJoint(
 
 };
 
@@ -1541,7 +1536,19 @@ Simulator.prototype.addEntity = function(e) {
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
     var body = new Ammo.btRigidBody(rbInfo);
 
-    this.dynamicsWorld.addRigidBody(body);
+    // SET 2D
+    body.setLinearFactor(new Ammo.btVector3(1,1,0));
+    body.setAngularFactor(new Ammo.btVector3(0,0,1));
+
+    var nothing = 0;
+    var human = 1 << 0;
+    var ground = 1 << 1;
+    if (e.name === 'ground') {
+        this.dynamicsWorld.addRigidBody(body, ground, human);
+    } else {
+        this.dynamicsWorld.addRigidBody(body, human, ground);
+    }
+
 
     this.entities[e.name] = {'entity': e, 'body': body};
 
@@ -1550,7 +1557,8 @@ Simulator.prototype.addEntity = function(e) {
 Simulator.prototype.step = function(dt) {
     var trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
 
-    this.dynamicsWorld.stepSimulation(dt/1000, 10);
+//    console.log(dt);
+    this.dynamicsWorld.stepSimulation(1/30, 1000, 1/1000);
 
     for (var name in this.entities) {
         var e = this.entities[name];
@@ -10906,7 +10914,7 @@ $(document).ready(function() {
     var renderer  = new Renderer();
 
     var world = new World(renderer, simulator, {FPS: FPS});
-    var ground = new Box('ground', [10,5,10], {mass: 0});
+    var ground = new Box('ground', [10,5,10], {mass: 0, color: [0,0,255]});
     ground.setPosition([0,-2.5,0]);
     world.addEntity(ground);
 
@@ -10939,12 +10947,16 @@ $(document).ready(function() {
         var joint;
         switch(jInfo.type) {
             case "HINGE":
-                joint = new Hinge(j, {"A": jInfo.A, "B": jInfo.B}, jInfo.position, jInfo.axis);
+                joint = new Hinge(j, 
+                                  {"A": jInfo.A, "B": jInfo.B}, 
+                                  jInfo.position, 
+                                  jInfo.axis, 
+                                  {"lo": jInfo.min[2], "hi": jInfo.max[2]});
                 break;
             default:
                 throw "Unknown Joint type: " + jInfo.type;
         }
-        world.addJoint(joint);
+        world.addJoint(joint, true);
     }
 
     world.go();

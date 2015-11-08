@@ -1,6 +1,6 @@
 var Joint = require('./joint');
 
-function Hinge(name, entityNames, pos, axis) {
+function Hinge(name, entityNames, pos, axis, limits) {
 
     Joint.call(this, name);
 
@@ -9,6 +9,11 @@ function Hinge(name, entityNames, pos, axis) {
 
     this.position = pos;
     this.axis = axis;
+
+    limits = (limits === undefined) ? {} : limits;
+
+    this.lo = limits.lo;
+    this.hi = limits.hi;
 
 }
 

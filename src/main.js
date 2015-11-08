@@ -19,7 +19,7 @@ $(document).ready(function() {
     var renderer  = new Renderer();
 
     var world = new World(renderer, simulator, {FPS: FPS});
-    var ground = new Box('ground', [10,5,10], {mass: 0});
+    var ground = new Box('ground', [10,5,10], {mass: 0, color: [0,0,255]});
     ground.setPosition([0,-2.5,0]);
     world.addEntity(ground);
 
@@ -52,12 +52,16 @@ $(document).ready(function() {
         var joint;
         switch(jInfo.type) {
             case "HINGE":
-                joint = new Hinge(j, {"A": jInfo.A, "B": jInfo.B}, jInfo.position, jInfo.axis);
+                joint = new Hinge(j, 
+                                  {"A": jInfo.A, "B": jInfo.B}, 
+                                  jInfo.position, 
+                                  jInfo.axis, 
+                                  {"lo": jInfo.min[2], "hi": jInfo.max[2]});
                 break;
             default:
                 throw "Unknown Joint type: " + jInfo.type;
         }
-        world.addJoint(joint);
+        world.addJoint(joint, true);
     }
 
     world.go();
