@@ -262,7 +262,7 @@ module.exports = Ball;
 },{"./joint":9}],8:[function(require,module,exports){
 var Joint = require('./joint');
 
-function Hinge(name, entityNames, pos, axis, limits) {
+function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity) {
 
     Joint.call(this, name);
 
@@ -271,6 +271,9 @@ function Hinge(name, entityNames, pos, axis, limits) {
 
     this.position = pos;
     this.axis = axis;
+
+    this.angle = (angle === undefined) ? 0 : angle;
+    this.angularVelocity = (angularVelocity === undefined) ? 0 : angularVelocity;
 
     limits = (limits === undefined) ? {} : limits;
 
@@ -292,6 +295,26 @@ Hinge.prototype.getAxis = function() {
 
 Hinge.prototype.getPosition = function() {
     return this.position;
+};
+
+Hinge.prototype.getAngle = function() {
+    return this.angle;
+};
+
+Hinge.prototype.setAngle = function(ang, dt) {
+    var angleLast = this.angle;
+    this.angle = ang;
+    if (dt !== undefined) {
+        this.angularVelocity = (this.angle - angleLast)/dt;
+    }
+};
+
+Hinge.prototype.getAngularVelocity = function() {
+    return this.angularVelocity;
+};
+
+Hinge.prototype.setAngularVelocity = function(angVel) {
+    this.angularVelocity = angVel;
 };
 
 Hinge.prototype.getType = function() {
@@ -1416,7 +1439,11 @@ function Simulator(opts) {
 
     this.opts = (opts === undefined) ? {} : opts; 
 
+    this.dt = (this.opts.dt === undefined) ? 1/1000 : this.opts.dt;
+    this.FPS = (this.opts.FPS === undefined) ? 1/30 : this.opts.FPS;
+
     this.entities = {};
+    this.joints = {};
 
     this.initialize();
 }
@@ -1495,6 +1522,10 @@ Simulator.prototype.addJoint = function(j) {
 
     this.dynamicsWorld.addConstraint(joint);
 
+    console.log(joint.getHingeAngle());
+
+    this.joints[j.name] = {'joint': j, 'jointBullet': joint};
+
 };
 
 Simulator.prototype.addEntity = function(e) {
@@ -1554,11 +1585,11 @@ Simulator.prototype.addEntity = function(e) {
 
 };
 
-Simulator.prototype.step = function(dt) {
+Simulator.prototype.step = function() {
     var trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
 
 //    console.log(dt);
-    this.dynamicsWorld.stepSimulation(1/30, 1000, 1/1000);
+    this.dynamicsWorld.stepSimulation(this.FPS, Math.ceil(1/this.dt), this.dt);
 
     for (var name in this.entities) {
         var e = this.entities[name];
@@ -1571,6 +1602,14 @@ Simulator.prototype.step = function(dt) {
             var rot = trans.getRotation();
             entity.setPosition(pos);
             entity.setRotation([rot.x(), rot.y(), rot.z(), rot.w()]);
+        }
+    };
+    for (var name in this.joints) {
+        var j = this.joints[name];
+        var jointEntity = j.joint;
+        var jointBullet = j.jointBullet;
+        if (jointEntity.getType() === 'HINGE') {
+//            jointEntity.setAngle(jointBullet.getHingeAngle(), this.dt);
         }
     };
 };
