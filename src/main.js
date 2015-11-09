@@ -11,6 +11,7 @@ var Hinge       = require('./joints/hinge');
 var Ball        = require('./joints/ball');
 
 var PDController = require('./controller/pdcontroller');
+var VPDController = require('./controller/vpdcontroller');
 
 var FPS = 1000/30;
 
@@ -66,42 +67,115 @@ $(document).ready(function() {
         world.addJoint(joint, true);
     }
 
-    var rArmC = new PDController(world.joints['rShoulder'], -1.57);
-    var rElbowC = new PDController(world.joints['rElbow'], -0.0);
-//    var rWristC = new PDController(world.joints['rWrist'], -0.0);
+    var controllers = {};
+    var dt    = .3;
+    var dt2   = .03;
+    var cde   = 0;
+    var cdo   = -2.2;
+    var cve   = -.2;
+    var cvo   = 0;
+    var tor   = 0;
+    var swhe  = -.4;
+    var swho  = .7;
+    var swke  =  1.1;
+    var swko  = .05;
+    var stke  = .05;
+    var stko  = .1;
+    var ankle = -.2;
 
+    for (var name in human.joints) {
+        controllers[name] = new PDController(world.joints[name], 0);
+    }
+
+    var vpd = new VPDController(world.joints['rHip'], world.entities['uTorso'], 0);
+
+    var t = 0;
+    var phase = 0;
     world.go(function() {
-            var torque = rArmC.evaluate();
-            rArmC.joint.setTorque(torque);
 
-            var torqueElbow = rElbowC.evaluate();
-            rElbowC.joint.setTorque(torqueElbow);
+            t += 1/1000;
 
- //           var torqueWrist = rWristC.evaluate();
-//            rWristC.joint.setTorque(torqueWrist);
+            if (phase === 0) {
+
+                controllers['neck2head'].goal = 0;
+                controllers['uTorso2neck'].goal = 0;
+                controllers['waist'].goal = 0;
+                controllers['waist'].kp = 600;
+                controllers['waist'].kd = 60;
+
+                controllers['lTorso2uTorso'].goal = 0;
+                controllers['lTorso2uTorso'].kp = 600;
+                controllers['lTorso2uTorso'].kd = 60;
+
+                controllers['lWrist'].goal = 0;
+                controllers['lWrist'].kp = 5;
+                controllers['lWrist'].kd = 3;
+
+                controllers['rWrist'].goal = 0;
+                controllers['rWrist'].kp = 5;
+                controllers['rWrist'].kd = 3;
+
+                controllers['rKnee'].goal = swke;
+                controllers['rAnkle'].goal = ankle;
+                controllers['lKnee'].goal = stke;
+                controllers['lAnkle'].goal = ankle;
+
+                controllers['rShoulder'].goal = .3;
+                controllers['rShoulder'].kp = 100;
+                controllers['rShoulder'].kd = 30;
+
+                controllers['rElbow'].goal = 0;
+                controllers['rElbow'].kp = 100;
+                controllers['rElbow'].kd = 30;
+
+
+                controllers['lShoulder'].goal = -.3;
+                controllers['lShoulder'].kp = 100;
+                controllers['lShoulder'].kd = 30;
+
+                controllers['rElbow'].goal = -.4;
+                controllers['rElbow'].kp = 100;
+                controllers['rElbow'].kd = 30;
+                if (t > dt) {
+                    t = 0;
+                    phase = 1;
+                    console.log('p1');
+                }
+            } else if (phase === 1) {
+                controllers['rKnee'].goal = swko;
+                controllers['lKnee'].goal = stko;
+                if (t > dt2) {
+                    t = 0;
+                    phase = 2;
+                    console.log('p2');
+                }
+            } else if (phase === 2) {
+                controllers['lKnee'].goal = swke;
+                controllers['rKnee'].goal = stke;
+                controllers['rShoulder'].goal = -.3;
+                controllers['lShoulder'].goal = .3;
+                controllers['rElbow'].goal = -.4;
+                controllers['lElbow'].goal = 0;
+                if (t > dt) {
+                    t = 0;
+                    phase = 3;
+                    console.log('p3');
+                }
+            } else if (phase === 3) {
+                controllers['lKnee'].goal = swko;
+                controllers['rKnee'].goal = stko;
+                if (t > dt2) {
+                    t = 0; 
+                    phase = 0;
+                    console.log('p0');
+                }
+            }
+
+            for (var name in controllers) {
+                var torque = controllers[name].evaluate();
+                controllers[name].joint.setTorque(torque);
+            }
         }
     );
-
-    /*
-    var box1 = new Box('box1', [1,1,1], {
-        mass: 1,
-        color: [0,0,255],
-    });
-    box1.setPosition([.5,5,.5]);
-    world.addEntity(box1);
-
-    var b1_world = new Ball('b1_world', {'A': 'box1'}, [0, 5.5, 0]);
-    world.addJoint(b1_world);
-
-    var box2 = new Box('box2', [1,1,1], {
-        mass: 1,
-        color: [0,0,255],
-    });
-    box2.setPosition([1.5,5,.5]);
-    world.addEntity(box2);
-
-    var b1_b2 = new Hinge('b1_b2', {'A': 'box1', 'B': 'box2'}, [1, 4.5, .5], [0,0,1]);
-    world.addJoint(b1_b2);
-    */
 
 });

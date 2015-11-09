@@ -35,6 +35,44 @@ PDController.prototype.evaluate = function() {
 module.exports = PDController;
 
 },{}],2:[function(require,module,exports){
+
+var KP = 300;
+var KD = 30;
+
+function VPDController(joint, part, goal, options) {
+
+    this.joint = joint;
+    this.part = part;
+    this.goal = goal;
+
+    options = (options === undefined) ? {} : options; 
+
+    this.kp = (options.kp === undefined) ? KP : options.kp;
+    this.kd = (options.kd === undefined) ? KD : options.kd;
+    this.goalVelocity = (options.goalVelocity === undefined) ? 0 : optionsgoalVelocity;
+
+}
+
+VPDController.prototype.constructor = VPDController;
+
+VPDController.prototype.evaluate = function() {
+
+    var currentAngle = Math.acos(this.part.getRotation()[3])*2;
+ //   var currentAngularVelocity = this.part.getAngularVelocity();
+
+ //   var ret = this.kp*(this.goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
+
+    var ret = 0;
+
+    return ret;
+
+};
+
+
+
+module.exports = VPDController;
+
+},{}],3:[function(require,module,exports){
 var Entity = require('./entity');
 
 function Box(name, sides, opts) {
@@ -66,7 +104,7 @@ Box.prototype.getType = function() {
 
 module.exports = Box;
 
-},{"./entity":5}],3:[function(require,module,exports){
+},{"./entity":6}],4:[function(require,module,exports){
 var Entity = require('./entity');
 
 function Capsule(name, radius, height, opts) {
@@ -108,7 +146,7 @@ Capsule.prototype.getType = function() {
 
 module.exports = Capsule;
 
-},{"./entity":5}],4:[function(require,module,exports){
+},{"./entity":6}],5:[function(require,module,exports){
 
 var Entity = require('./entity');
 
@@ -151,7 +189,7 @@ Cylinder.prototype.getType = function() {
 
 module.exports = Cylinder;
 
-},{"./entity":5}],5:[function(require,module,exports){
+},{"./entity":6}],6:[function(require,module,exports){
 function Entity(name, opts) {
 
     this.opts = (opts === undefined) ? {} : opts;
@@ -159,7 +197,7 @@ function Entity(name, opts) {
     this.name = name;
 
     this.position = [0,0,0];
-    this.rotation = [0,0,0,0];
+    this.rotation = [0,0,0,0]; // q.v, q.w
     this.mass = (opts.mass === undefined) ? 0 : opts.mass;
     this.color = (opts.color === undefined) ? [130,130,130] : opts.color;
 
@@ -182,6 +220,10 @@ Entity.prototype.setRotation = function(q) {
     this.rotation[1] = q[1];
     this.rotation[2] = q[2];
     this.rotation[3] = q[3];
+
+    if (this.name === 'uTorso') {
+//        console.log(this.rotation);
+    }
 };
 
 Entity.prototype.getPosition = function() {
@@ -193,7 +235,7 @@ Entity.prototype.getRotation = function() {
 
 module.exports = Entity;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 var THREE = require('../lib/three.min.js');
 var Entity = require('./entity');
@@ -233,7 +275,7 @@ Plane.prototype.initialize = function() {
 
 module.exports = Plane;
 
-},{"../lib/three.min.js":11,"./entity":5}],7:[function(require,module,exports){
+},{"../lib/three.min.js":12,"./entity":6}],8:[function(require,module,exports){
 var Entity = require('./entity');
 
 function Sphere(name, radius, opts) {
@@ -265,7 +307,7 @@ Sphere.prototype.getType = function() {
 
 module.exports = Sphere;
 
-},{"./entity":5}],8:[function(require,module,exports){
+},{"./entity":6}],9:[function(require,module,exports){
 var Joint = require('./joint');
 
 function Ball(name, entityNames, pos) {
@@ -295,7 +337,7 @@ Ball.prototype.getType = function() {
 
 module.exports = Ball;
 
-},{"./joint":10}],9:[function(require,module,exports){
+},{"./joint":11}],10:[function(require,module,exports){
 var Joint = require('./joint');
 
 function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity, torqueLimit) {
@@ -317,7 +359,7 @@ function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity, tor
     this.lo = limits.lo;
     this.hi = limits.hi;
 
-    this.torqueLimit = (torqueLimit  === undefined) ? 100 : torqueLimit;
+    this.torqueLimit = (torqueLimit  === undefined) ? 1000 : torqueLimit;
 
 }
 
@@ -381,7 +423,7 @@ Hinge.prototype.getType = function() {
 
 module.exports = Hinge;
 
-},{"./joint":10}],10:[function(require,module,exports){
+},{"./joint":11}],11:[function(require,module,exports){
 function Joint(name, opts) {
 
     this.opts = (opts === undefined) ? {} : opts;
@@ -398,7 +440,7 @@ Joint.prototype.initialize = function() {
 
 module.exports = Joint;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 // threejs.org/license
 'use strict';var THREE={REVISION:"73"};"function"===typeof define&&define.amd?define("three",THREE):"undefined"!==typeof exports&&"undefined"!==typeof module&&(module.exports=THREE);
 void 0!==self.requestAnimationFrame&&void 0!==self.cancelAnimationFrame||function(){for(var a=0,b=["ms","moz","webkit","o"],c=0;c<b.length&&!self.requestAnimationFrame;++c)self.requestAnimationFrame=self[b[c]+"RequestAnimationFrame"],self.cancelAnimationFrame=self[b[c]+"CancelAnimationFrame"]||self[b[c]+"CancelRequestAnimationFrame"];void 0===self.requestAnimationFrame&&void 0!==self.setTimeout&&(self.requestAnimationFrame=function(b){var c=Date.now(),g=Math.max(0,16-(c-a)),f=self.setTimeout(function(){b(c+
@@ -1270,7 +1312,7 @@ THREE.MorphBlendMesh.prototype.getAnimationDuration=function(a){var b=-1;if(a=th
 THREE.MorphBlendMesh.prototype.update=function(a){for(var b=0,c=this.animationsList.length;b<c;b++){var d=this.animationsList[b];if(d.active){var e=d.duration/d.length;d.time+=d.direction*a;if(d.mirroredLoop){if(d.time>d.duration||0>d.time)d.direction*=-1,d.time>d.duration&&(d.time=d.duration,d.directionBackwards=!0),0>d.time&&(d.time=0,d.directionBackwards=!1)}else d.time%=d.duration,0>d.time&&(d.time+=d.duration);var g=d.start+THREE.Math.clamp(Math.floor(d.time/e),0,d.length-1),f=d.weight;g!==d.currentFrame&&
 (this.morphTargetInfluences[d.lastFrame]=0,this.morphTargetInfluences[d.currentFrame]=1*f,this.morphTargetInfluences[g]=0,d.lastFrame=d.currentFrame,d.currentFrame=g);e=d.time%e/e;d.directionBackwards&&(e=1-e);d.currentFrame!==d.lastFrame?(this.morphTargetInfluences[d.currentFrame]=e*f,this.morphTargetInfluences[d.lastFrame]=(1-e)*f):this.morphTargetInfluences[d.currentFrame]=f}}};
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 
 
 var THREE = require('../lib/three.min.js');
@@ -1491,7 +1533,7 @@ Renderer.prototype.addEntity = function(e) {
 
 module.exports = Renderer;
 
-},{"../entity/box":2,"../entity/capsule":3,"../entity/cylinder":4,"../entity/plane":6,"../entity/sphere":7,"../lib/three.min.js":11}],13:[function(require,module,exports){
+},{"../entity/box":3,"../entity/capsule":4,"../entity/cylinder":5,"../entity/plane":7,"../entity/sphere":8,"../lib/three.min.js":12}],14:[function(require,module,exports){
 
 function Simulator(opts) {
 
@@ -1687,7 +1729,7 @@ Simulator.prototype.step = function(callback) {
 module.exports = Simulator;
 
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var Box      = require('../entity/box');
 var Cylinder = require('../entity/cylinder');
 var Sphere   = require('../entity/sphere');
@@ -1754,18 +1796,22 @@ World.prototype.go = function(callback) {
 
     var scope = this;
 
+    var last = Date.now();
     function animate() {
 
         requestAnimationFrame(animate);
 
-        var dt = 1/1000;
-        var t = 0;
+        var now = Date.now();
+        var elapsed = now - last;
+        if (elapsed > 1/30*1000) {
+            for (var t = 0; t < 1/30; t+= 1/1000) {
+                scope.step(callback);
+            }
 
-        for (var t = 0; t < 1/30; t+= 1/1000) {
-            scope.step(callback);
+            scope.render();
+            last = now;
         }
 
-        scope.render();
 
     }
 
@@ -1785,7 +1831,7 @@ World.prototype.step = function(elapsed) {
 
 module.exports = World;
 
-},{"../entity/box":2,"../entity/capsule":3,"../entity/cylinder":4,"../entity/plane":6,"../entity/sphere":7}],15:[function(require,module,exports){
+},{"../entity/box":3,"../entity/capsule":4,"../entity/cylinder":5,"../entity/plane":7,"../entity/sphere":8}],16:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -10997,7 +11043,7 @@ return jQuery;
 
 }));
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var $           = require('jquery');
 
 var World       = require('./world/world');
@@ -11011,6 +11057,7 @@ var Hinge       = require('./joints/hinge');
 var Ball        = require('./joints/ball');
 
 var PDController = require('./controller/pdcontroller');
+var VPDController = require('./controller/vpdcontroller');
 
 var FPS = 1000/30;
 
@@ -11066,44 +11113,117 @@ $(document).ready(function() {
         world.addJoint(joint, true);
     }
 
-    var rArmC = new PDController(world.joints['rShoulder'], -1.57);
-    var rElbowC = new PDController(world.joints['rElbow'], -0.0);
-//    var rWristC = new PDController(world.joints['rWrist'], -0.0);
+    var controllers = {};
+    var dt    = .3;
+    var dt2   = .03;
+    var cde   = 0;
+    var cdo   = -2.2;
+    var cve   = -.2;
+    var cvo   = 0;
+    var tor   = 0;
+    var swhe  = -.4;
+    var swho  = .7;
+    var swke  =  1.1;
+    var swko  = .05;
+    var stke  = .05;
+    var stko  = .1;
+    var ankle = -.2;
 
+    for (var name in human.joints) {
+        controllers[name] = new PDController(world.joints[name], 0);
+    }
+
+    var vpd = new VPDController(world.joints['rHip'], world.entities['uTorso'], 0);
+
+    var t = 0;
+    var phase = 0;
     world.go(function() {
-            var torque = rArmC.evaluate();
-            rArmC.joint.setTorque(torque);
 
-            var torqueElbow = rElbowC.evaluate();
-            rElbowC.joint.setTorque(torqueElbow);
+            t += 1/1000;
 
- //           var torqueWrist = rWristC.evaluate();
-//            rWristC.joint.setTorque(torqueWrist);
+            if (phase === 0) {
+
+                controllers['neck2head'].goal = 0;
+                controllers['uTorso2neck'].goal = 0;
+                controllers['waist'].goal = 0;
+                controllers['waist'].kp = 600;
+                controllers['waist'].kd = 60;
+
+                controllers['lTorso2uTorso'].goal = 0;
+                controllers['lTorso2uTorso'].kp = 600;
+                controllers['lTorso2uTorso'].kd = 60;
+
+                controllers['lWrist'].goal = 0;
+                controllers['lWrist'].kp = 5;
+                controllers['lWrist'].kd = 3;
+
+                controllers['rWrist'].goal = 0;
+                controllers['rWrist'].kp = 5;
+                controllers['rWrist'].kd = 3;
+
+                controllers['rKnee'].goal = swke;
+                controllers['rAnkle'].goal = ankle;
+                controllers['lKnee'].goal = stke;
+                controllers['lAnkle'].goal = ankle;
+
+                controllers['rShoulder'].goal = .3;
+                controllers['rShoulder'].kp = 100;
+                controllers['rShoulder'].kd = 30;
+
+                controllers['rElbow'].goal = 0;
+                controllers['rElbow'].kp = 100;
+                controllers['rElbow'].kd = 30;
+
+
+                controllers['lShoulder'].goal = -.3;
+                controllers['lShoulder'].kp = 100;
+                controllers['lShoulder'].kd = 30;
+
+                controllers['rElbow'].goal = -.4;
+                controllers['rElbow'].kp = 100;
+                controllers['rElbow'].kd = 30;
+                if (t > dt) {
+                    t = 0;
+                    phase = 1;
+                    console.log('p1');
+                }
+            } else if (phase === 1) {
+                controllers['rKnee'].goal = swko;
+                controllers['lKnee'].goal = stko;
+                if (t > dt2) {
+                    t = 0;
+                    phase = 2;
+                    console.log('p2');
+                }
+            } else if (phase === 2) {
+                controllers['lKnee'].goal = swke;
+                controllers['rKnee'].goal = stke;
+                controllers['rShoulder'].goal = -.3;
+                controllers['lShoulder'].goal = .3;
+                controllers['rElbow'].goal = -.4;
+                controllers['lElbow'].goal = 0;
+                if (t > dt) {
+                    t = 0;
+                    phase = 3;
+                    console.log('p3');
+                }
+            } else if (phase === 3) {
+                controllers['lKnee'].goal = swko;
+                controllers['rKnee'].goal = stko;
+                if (t > dt2) {
+                    t = 0; 
+                    phase = 0;
+                    console.log('p0');
+                }
+            }
+
+            for (var name in controllers) {
+                var torque = controllers[name].evaluate();
+                controllers[name].joint.setTorque(torque);
+            }
         }
     );
 
-    /*
-    var box1 = new Box('box1', [1,1,1], {
-        mass: 1,
-        color: [0,0,255],
-    });
-    box1.setPosition([.5,5,.5]);
-    world.addEntity(box1);
-
-    var b1_world = new Ball('b1_world', {'A': 'box1'}, [0, 5.5, 0]);
-    world.addJoint(b1_world);
-
-    var box2 = new Box('box2', [1,1,1], {
-        mass: 1,
-        color: [0,0,255],
-    });
-    box2.setPosition([1.5,5,.5]);
-    world.addEntity(box2);
-
-    var b1_b2 = new Hinge('b1_b2', {'A': 'box1', 'B': 'box2'}, [1, 4.5, .5], [0,0,1]);
-    world.addJoint(b1_b2);
-    */
-
 });
 
-},{"./controller/pdcontroller":1,"./entity/box":2,"./entity/capsule":3,"./entity/cylinder":4,"./entity/sphere":7,"./joints/ball":8,"./joints/hinge":9,"./renderer/renderer":12,"./simulator/simulator":13,"./world/world":14,"jquery":15}]},{},[16]);
+},{"./controller/pdcontroller":1,"./controller/vpdcontroller":2,"./entity/box":3,"./entity/capsule":4,"./entity/cylinder":5,"./entity/sphere":8,"./joints/ball":9,"./joints/hinge":10,"./renderer/renderer":13,"./simulator/simulator":14,"./world/world":15,"jquery":16}]},{},[17]);

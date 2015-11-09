@@ -64,18 +64,22 @@ World.prototype.go = function(callback) {
 
     var scope = this;
 
+    var last = Date.now();
     function animate() {
 
         requestAnimationFrame(animate);
 
-        var dt = 1/1000;
-        var t = 0;
+        var now = Date.now();
+        var elapsed = now - last;
+        if (elapsed > 1/30*1000) {
+            for (var t = 0; t < 1/30; t+= 1/1000) {
+                scope.step(callback);
+            }
 
-        for (var t = 0; t < 1/30; t+= 1/1000) {
-            scope.step(callback);
+            scope.render();
+            last = now;
         }
 
-        scope.render();
 
     }
 

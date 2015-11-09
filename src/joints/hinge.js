@@ -19,7 +19,7 @@ function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity, tor
     this.lo = limits.lo;
     this.hi = limits.hi;
 
-    this.torqueLimit = (torqueLimit  === undefined) ? 100 : torqueLimit;
+    this.torqueLimit = (torqueLimit  === undefined) ? 1000 : torqueLimit;
 
 }
 
