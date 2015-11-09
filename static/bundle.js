@@ -1,4 +1,40 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+
+var KP = 300;
+var KD = 30;
+
+function PDController(joint, goal, options) {
+
+    this.goal = goal;
+    this.joint = joint;
+
+    options = (options === undefined) ? {} : options; 
+
+    this.kp = (options.kp === undefined) ? KP : options.kp;
+    this.kd = (options.kd === undefined) ? KD : options.kd;
+    this.goalVelocity = (options.goalVelocity === undefined) ? 0 : optionsgoalVelocity;
+
+}
+
+PDController.prototype.constructor = PDController;
+
+PDController.prototype.evaluate = function() {
+
+    var currentAngle = this.joint.getAngle();
+    var currentAngularVelocity = this.joint.getAngularVelocity();
+
+    var ret = this.kp*(this.goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
+
+
+    return ret;
+
+};
+
+
+
+module.exports = PDController;
+
+},{}],2:[function(require,module,exports){
 var Entity = require('./entity');
 
 function Box(name, sides, opts) {
@@ -30,7 +66,7 @@ Box.prototype.getType = function() {
 
 module.exports = Box;
 
-},{"./entity":4}],2:[function(require,module,exports){
+},{"./entity":5}],3:[function(require,module,exports){
 var Entity = require('./entity');
 
 function Capsule(name, radius, height, opts) {
@@ -72,7 +108,7 @@ Capsule.prototype.getType = function() {
 
 module.exports = Capsule;
 
-},{"./entity":4}],3:[function(require,module,exports){
+},{"./entity":5}],4:[function(require,module,exports){
 
 var Entity = require('./entity');
 
@@ -115,7 +151,7 @@ Cylinder.prototype.getType = function() {
 
 module.exports = Cylinder;
 
-},{"./entity":4}],4:[function(require,module,exports){
+},{"./entity":5}],5:[function(require,module,exports){
 function Entity(name, opts) {
 
     this.opts = (opts === undefined) ? {} : opts;
@@ -157,7 +193,7 @@ Entity.prototype.getRotation = function() {
 
 module.exports = Entity;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 
 var THREE = require('../lib/three.min.js');
 var Entity = require('./entity');
@@ -197,7 +233,7 @@ Plane.prototype.initialize = function() {
 
 module.exports = Plane;
 
-},{"../lib/three.min.js":10,"./entity":4}],6:[function(require,module,exports){
+},{"../lib/three.min.js":11,"./entity":5}],7:[function(require,module,exports){
 var Entity = require('./entity');
 
 function Sphere(name, radius, opts) {
@@ -229,7 +265,7 @@ Sphere.prototype.getType = function() {
 
 module.exports = Sphere;
 
-},{"./entity":4}],7:[function(require,module,exports){
+},{"./entity":5}],8:[function(require,module,exports){
 var Joint = require('./joint');
 
 function Ball(name, entityNames, pos) {
@@ -259,10 +295,10 @@ Ball.prototype.getType = function() {
 
 module.exports = Ball;
 
-},{"./joint":9}],8:[function(require,module,exports){
+},{"./joint":10}],9:[function(require,module,exports){
 var Joint = require('./joint');
 
-function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity) {
+function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity, torqueLimit) {
 
     Joint.call(this, name);
 
@@ -274,11 +310,14 @@ function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity) {
 
     this.angle = (angle === undefined) ? 0 : angle;
     this.angularVelocity = (angularVelocity === undefined) ? 0 : angularVelocity;
+    this.torque = 0;
 
     limits = (limits === undefined) ? {} : limits;
 
     this.lo = limits.lo;
     this.hi = limits.hi;
+
+    this.torqueLimit = (torqueLimit  === undefined) ? 100 : torqueLimit;
 
 }
 
@@ -305,7 +344,7 @@ Hinge.prototype.setAngle = function(ang, dt) {
     var angleLast = this.angle;
     this.angle = ang;
     if (dt !== undefined) {
-        this.angularVelocity = (this.angle - angleLast)/dt;
+        this.angularVelocity = (this.angle - angleLast)*dt;
     }
 };
 
@@ -317,13 +356,32 @@ Hinge.prototype.setAngularVelocity = function(angVel) {
     this.angularVelocity = angVel;
 };
 
+Hinge.prototype.resetTorque = function() {
+    this.setTorque(0);
+};
+
+Hinge.prototype.setTorque = function(t) {
+    this.torque = t;
+};
+
+Hinge.prototype.getTorque = function() {
+    return this.torque;
+};
+
+Hinge.prototype.getLimitedTorque = function() {
+    var ret = this.torque;
+    if (Math.abs(ret) > this.torqueLimit) { return this.torqueLimit * ret/Math.abs(ret); }
+
+    return this.torque;
+};
+
 Hinge.prototype.getType = function() {
     return 'HINGE';
 };
 
 module.exports = Hinge;
 
-},{"./joint":9}],9:[function(require,module,exports){
+},{"./joint":10}],10:[function(require,module,exports){
 function Joint(name, opts) {
 
     this.opts = (opts === undefined) ? {} : opts;
@@ -340,7 +398,7 @@ Joint.prototype.initialize = function() {
 
 module.exports = Joint;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 // threejs.org/license
 'use strict';var THREE={REVISION:"73"};"function"===typeof define&&define.amd?define("three",THREE):"undefined"!==typeof exports&&"undefined"!==typeof module&&(module.exports=THREE);
 void 0!==self.requestAnimationFrame&&void 0!==self.cancelAnimationFrame||function(){for(var a=0,b=["ms","moz","webkit","o"],c=0;c<b.length&&!self.requestAnimationFrame;++c)self.requestAnimationFrame=self[b[c]+"RequestAnimationFrame"],self.cancelAnimationFrame=self[b[c]+"CancelAnimationFrame"]||self[b[c]+"CancelRequestAnimationFrame"];void 0===self.requestAnimationFrame&&void 0!==self.setTimeout&&(self.requestAnimationFrame=function(b){var c=Date.now(),g=Math.max(0,16-(c-a)),f=self.setTimeout(function(){b(c+
@@ -1212,7 +1270,7 @@ THREE.MorphBlendMesh.prototype.getAnimationDuration=function(a){var b=-1;if(a=th
 THREE.MorphBlendMesh.prototype.update=function(a){for(var b=0,c=this.animationsList.length;b<c;b++){var d=this.animationsList[b];if(d.active){var e=d.duration/d.length;d.time+=d.direction*a;if(d.mirroredLoop){if(d.time>d.duration||0>d.time)d.direction*=-1,d.time>d.duration&&(d.time=d.duration,d.directionBackwards=!0),0>d.time&&(d.time=0,d.directionBackwards=!1)}else d.time%=d.duration,0>d.time&&(d.time+=d.duration);var g=d.start+THREE.Math.clamp(Math.floor(d.time/e),0,d.length-1),f=d.weight;g!==d.currentFrame&&
 (this.morphTargetInfluences[d.lastFrame]=0,this.morphTargetInfluences[d.currentFrame]=1*f,this.morphTargetInfluences[g]=0,d.lastFrame=d.currentFrame,d.currentFrame=g);e=d.time%e/e;d.directionBackwards&&(e=1-e);d.currentFrame!==d.lastFrame?(this.morphTargetInfluences[d.currentFrame]=e*f,this.morphTargetInfluences[d.lastFrame]=(1-e)*f):this.morphTargetInfluences[d.currentFrame]=f}}};
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 
 
 var THREE = require('../lib/three.min.js');
@@ -1433,7 +1491,7 @@ Renderer.prototype.addEntity = function(e) {
 
 module.exports = Renderer;
 
-},{"../entity/box":1,"../entity/capsule":2,"../entity/cylinder":3,"../entity/plane":5,"../entity/sphere":6,"../lib/three.min.js":10}],12:[function(require,module,exports){
+},{"../entity/box":2,"../entity/capsule":3,"../entity/cylinder":4,"../entity/plane":6,"../entity/sphere":7,"../lib/three.min.js":11}],13:[function(require,module,exports){
 
 function Simulator(opts) {
 
@@ -1585,11 +1643,22 @@ Simulator.prototype.addEntity = function(e) {
 
 };
 
-Simulator.prototype.step = function() {
+Simulator.prototype.step = function(callback) {
     var trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
 
-//    console.log(dt);
-    this.dynamicsWorld.stepSimulation(this.FPS, Math.ceil(1/this.dt), this.dt);
+    for (var name in this.joints) {
+        var j = this.joints[name].joint;
+        var A = this.entities[j.A].body;
+        var B = this.entities[j.B].body;
+
+        var T = j.getLimitedTorque();
+        A.applyTorque(new Ammo.btVector3(0,0,T));
+        B.applyTorque(new Ammo.btVector3(0,0,-T));
+
+        j.resetTorque();
+    }
+
+    this.dynamicsWorld.stepSimulation(this.dt, 1, this.dt);
 
     for (var name in this.entities) {
         var e = this.entities[name];
@@ -1609,15 +1678,16 @@ Simulator.prototype.step = function() {
         var jointEntity = j.joint;
         var jointBullet = j.jointBullet;
         if (jointEntity.getType() === 'HINGE') {
-//            jointEntity.setAngle(jointBullet.getHingeAngle(), this.dt);
+            jointEntity.setAngle(jointBullet.getHingeAngle(), this.dt);
         }
     };
+    callback();
 };
 
 module.exports = Simulator;
 
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var Box      = require('../entity/box');
 var Cylinder = require('../entity/cylinder');
 var Sphere   = require('../entity/sphere');
@@ -1680,27 +1750,23 @@ World.prototype.addEntity = function(e, opts) {
 
 };
 
-World.prototype.go = function() {
+World.prototype.go = function(callback) {
 
     var scope = this;
-
-    var t_total = 0;
-    var t_last = Date.now();
 
     function animate() {
 
         requestAnimationFrame(animate);
 
-        var now = Date.now();
-        var elapsed = now - t_last;
+        var dt = 1/1000;
+        var t = 0;
 
-        if (elapsed > scope.FPS) {
-            t_last = now;
-            scope.step(elapsed);
-            scope.render();
+        for (var t = 0; t < 1/30; t+= 1/1000) {
+            scope.step(callback);
         }
 
-        t_total += elapsed;
+        scope.render();
+
     }
 
     requestAnimationFrame(animate);
@@ -1719,7 +1785,7 @@ World.prototype.step = function(elapsed) {
 
 module.exports = World;
 
-},{"../entity/box":1,"../entity/capsule":2,"../entity/cylinder":3,"../entity/plane":5,"../entity/sphere":6}],14:[function(require,module,exports){
+},{"../entity/box":2,"../entity/capsule":3,"../entity/cylinder":4,"../entity/plane":6,"../entity/sphere":7}],15:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -10931,7 +10997,7 @@ return jQuery;
 
 }));
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var $           = require('jquery');
 
 var World       = require('./world/world');
@@ -10943,6 +11009,8 @@ var Capsule     = require('./entity/capsule');
 var Cylinder    = require('./entity/cylinder');
 var Hinge       = require('./joints/hinge');
 var Ball        = require('./joints/ball');
+
+var PDController = require('./controller/pdcontroller');
 
 var FPS = 1000/30;
 
@@ -10998,7 +11066,21 @@ $(document).ready(function() {
         world.addJoint(joint, true);
     }
 
-    world.go();
+    var rArmC = new PDController(world.joints['rShoulder'], -1.57);
+    var rElbowC = new PDController(world.joints['rElbow'], -0.0);
+//    var rWristC = new PDController(world.joints['rWrist'], -0.0);
+
+    world.go(function() {
+            var torque = rArmC.evaluate();
+            rArmC.joint.setTorque(torque);
+
+            var torqueElbow = rElbowC.evaluate();
+            rElbowC.joint.setTorque(torqueElbow);
+
+ //           var torqueWrist = rWristC.evaluate();
+//            rWristC.joint.setTorque(torqueWrist);
+        }
+    );
 
     /*
     var box1 = new Box('box1', [1,1,1], {
@@ -11024,4 +11106,4 @@ $(document).ready(function() {
 
 });
 
-},{"./entity/box":1,"./entity/capsule":2,"./entity/cylinder":3,"./entity/sphere":6,"./joints/ball":7,"./joints/hinge":8,"./renderer/renderer":11,"./simulator/simulator":12,"./world/world":13,"jquery":14}]},{},[15]);
+},{"./controller/pdcontroller":1,"./entity/box":2,"./entity/capsule":3,"./entity/cylinder":4,"./entity/sphere":7,"./joints/ball":8,"./joints/hinge":9,"./renderer/renderer":12,"./simulator/simulator":13,"./world/world":14,"jquery":15}]},{},[16]);

@@ -60,27 +60,23 @@ World.prototype.addEntity = function(e, opts) {
 
 };
 
-World.prototype.go = function() {
+World.prototype.go = function(callback) {
 
     var scope = this;
-
-    var t_total = 0;
-    var t_last = Date.now();
 
     function animate() {
 
         requestAnimationFrame(animate);
 
-        var now = Date.now();
-        var elapsed = now - t_last;
+        var dt = 1/1000;
+        var t = 0;
 
-        if (elapsed > scope.FPS) {
-            t_last = now;
-            scope.step(elapsed);
-            scope.render();
+        for (var t = 0; t < 1/30; t+= 1/1000) {
+            scope.step(callback);
         }
 
-        t_total += elapsed;
+        scope.render();
+
     }
 
     requestAnimationFrame(animate);

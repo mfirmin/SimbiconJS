@@ -2,10 +2,12 @@
 var KP = 300;
 var KD = 30;
 
-function PDController(goal, joint, options) {
+function PDController(joint, goal, options) {
 
     this.goal = goal;
     this.joint = joint;
+
+    options = (options === undefined) ? {} : options; 
 
     this.kp = (options.kp === undefined) ? KP : options.kp;
     this.kd = (options.kd === undefined) ? KD : options.kd;
@@ -15,16 +17,17 @@ function PDController(goal, joint, options) {
 
 PDController.prototype.constructor = PDController;
 
-PDController.prototype.make = function() {
+PDController.prototype.evaluate = function() {
 
-    var scope = this;
-    return function() {
-        var currentAngle = scope.joint.getAngle();
-        var currentAngularVelocity = scope.joint.getAngularVelocity();
-        return scope.kp*(scope.goal - currentAngle) + scope.kd*(0 - currentAngularVelocity);
-    }
+    var currentAngle = this.joint.getAngle();
+    var currentAngularVelocity = this.joint.getAngularVelocity();
 
-}
+    var ret = this.kp*(this.goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
+
+
+    return ret;
+
+};
 
 
 

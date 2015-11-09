@@ -149,11 +149,22 @@ Simulator.prototype.addEntity = function(e) {
 
 };
 
-Simulator.prototype.step = function() {
+Simulator.prototype.step = function(callback) {
     var trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
 
-//    console.log(dt);
-    this.dynamicsWorld.stepSimulation(this.FPS, Math.ceil(1/this.dt), this.dt);
+    for (var name in this.joints) {
+        var j = this.joints[name].joint;
+        var A = this.entities[j.A].body;
+        var B = this.entities[j.B].body;
+
+        var T = j.getLimitedTorque();
+        A.applyTorque(new Ammo.btVector3(0,0,T));
+        B.applyTorque(new Ammo.btVector3(0,0,-T));
+
+        j.resetTorque();
+    }
+
+    this.dynamicsWorld.stepSimulation(this.dt, 1, this.dt);
 
     for (var name in this.entities) {
         var e = this.entities[name];
@@ -173,9 +184,10 @@ Simulator.prototype.step = function() {
         var jointEntity = j.joint;
         var jointBullet = j.jointBullet;
         if (jointEntity.getType() === 'HINGE') {
-//            jointEntity.setAngle(jointBullet.getHingeAngle(), this.dt);
+            jointEntity.setAngle(jointBullet.getHingeAngle(), this.dt);
         }
     };
+    callback();
 };
 
 module.exports = Simulator;

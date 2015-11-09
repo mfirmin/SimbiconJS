@@ -10,6 +10,8 @@ var Cylinder    = require('./entity/cylinder');
 var Hinge       = require('./joints/hinge');
 var Ball        = require('./joints/ball');
 
+var PDController = require('./controller/pdcontroller');
+
 var FPS = 1000/30;
 
 
@@ -64,7 +66,21 @@ $(document).ready(function() {
         world.addJoint(joint, true);
     }
 
-    world.go();
+    var rArmC = new PDController(world.joints['rShoulder'], -1.57);
+    var rElbowC = new PDController(world.joints['rElbow'], -0.0);
+//    var rWristC = new PDController(world.joints['rWrist'], -0.0);
+
+    world.go(function() {
+            var torque = rArmC.evaluate();
+            rArmC.joint.setTorque(torque);
+
+            var torqueElbow = rElbowC.evaluate();
+            rElbowC.joint.setTorque(torqueElbow);
+
+ //           var torqueWrist = rWristC.evaluate();
+//            rWristC.joint.setTorque(torqueWrist);
+        }
+    );
 
     /*
     var box1 = new Box('box1', [1,1,1], {
