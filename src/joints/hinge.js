@@ -66,6 +66,10 @@ Hinge.prototype.setTorque = function(t) {
     this.torque = t;
 };
 
+Hinge.prototype.addTorque = function(t) {
+    this.torque += t;
+};
+
 Hinge.prototype.getTorque = function() {
     return this.torque;
 };

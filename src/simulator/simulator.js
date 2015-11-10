@@ -144,7 +144,6 @@ Simulator.prototype.addEntity = function(e) {
         this.dynamicsWorld.addRigidBody(body, human, ground);
     }
 
-
     this.entities[e.name] = {'entity': e, 'body': body};
 
 };

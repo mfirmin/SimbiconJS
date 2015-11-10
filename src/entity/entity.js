@@ -36,9 +36,12 @@ Entity.prototype.setRotation = function(q) {
 
 Entity.prototype.getPosition = function() {
     return this.position;
-}
+};
 Entity.prototype.getRotation = function() {
     return this.rotation;
-}
+};
+Entity.prototype.getAngularVelocity = function() {
+    return 0;
+};
 
 module.exports = Entity;
