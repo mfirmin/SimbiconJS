@@ -352,6 +352,7 @@ function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity, tor
 
     this.angle = (angle === undefined) ? 0 : angle;
     this.angularVelocity = (angularVelocity === undefined) ? 0 : angularVelocity;
+    this.angularVelocityPrev = this.angularVelocity;
     this.torque = 0;
 
     limits = (limits === undefined) ? {} : limits;
@@ -386,12 +387,13 @@ Hinge.prototype.setAngle = function(ang, dt) {
     var angleLast = this.angle;
     this.angle = ang;
     if (dt !== undefined) {
+        this.angularVelocityPrev = this.angularVelocity;
         this.angularVelocity = (this.angle - angleLast)*dt;
     }
 };
 
 Hinge.prototype.getAngularVelocity = function() {
-    return this.angularVelocity;
+    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
 };
 
 Hinge.prototype.setAngularVelocity = function(angVel) {
@@ -11116,11 +11118,11 @@ $(document).ready(function() {
         world.addJoint(joint, true);
     }
 
+    /*
     var t = 0;
-    var pdc = new PDController(world.joints['rShoulder'], 0, {kp: 300, kd: 0});
+    var pdc = new PDController(world.joints['rShoulder'], 0, {kp: 300, kd: 30});
     world.go(function() {
-
-        if (t < 4) {
+        if (t < 3) {
             world.simulator.entities['uTorso'].body.applyForce(new Ammo.btVector3(1,0,0));
         }
         else {
@@ -11134,8 +11136,8 @@ $(document).ready(function() {
         t += 1/1000;
 
     });
+    */
 
-    /*
     var controllers = {};
     var dt    = .3;
     var dt2   = .03;
@@ -11203,8 +11205,15 @@ $(document).ready(function() {
                 controllers['rWrist'].kd = 3;
 
                 controllers['rKnee'].goal = swke;
+                controllers['rKnee'].kp = 300;
+                controllers['rKnee'].kd = 30;
+
                 controllers['rAnkle'].goal = ankle;
+
                 controllers['lKnee'].goal = stke;
+                controllers['lKnee'].kp = 300;
+                controllers['lKnee'].kd = 30;
+
                 controllers['lAnkle'].goal = ankle;
 
                 controllers['rShoulder'].goal = .3;
@@ -11237,7 +11246,6 @@ $(document).ready(function() {
 
                 var lh_ut_torque = lHip_uTorsoVPD.evaluate();
                 lHip.addTorque(lh_ut_torque);
-                console.log(lh_ut_torque);
 
                 var rh_rt_torque = rHip_rThighVPD.evaluate();
                 rHip.addTorque(rh_rt_torque);
@@ -11294,10 +11302,17 @@ $(document).ready(function() {
             for (var name in controllers) {
                 var torque = controllers[name].evaluate();
                 controllers[name].joint.addTorque(torque);
+                if (name === 'rKnee') {
+                    console.log('---');
+                    console.log(controllers['rKnee'].goal);
+                    console.log(world.joints['rKnee'].getAngle());
+                    console.log(world.joints['rKnee'].getAngularVelocity());
+                    console.log(torque);
+                            
+                }
             }
         }
     );
-    */
 
 });
 
