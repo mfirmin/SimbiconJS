@@ -1562,6 +1562,8 @@ module.exports = Renderer;
 
 },{"../entity/box":3,"../entity/capsule":4,"../entity/cylinder":5,"../entity/plane":7,"../entity/sphere":8,"../lib/three.min.js":12}],14:[function(require,module,exports){
 
+var utils = require('../utils/utils');
+
 function Simulator(opts) {
 
     this.opts = (opts === undefined) ? {} : opts; 
@@ -1747,7 +1749,6 @@ Simulator.prototype.step = function(callback) {
         if (jointEntity.getType() === 'HINGE') {
             jointEntity.setAngle(jointBullet.getHingeAngle(), this.dt);
         }
-//        if (name === 'rAnkle') {
             var tform = jointBullet.getFrameOffsetA();
 
             var body = jointBullet.getRigidBodyA();
@@ -1755,25 +1756,13 @@ Simulator.prototype.step = function(callback) {
 
             var pos = [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()];
 
-            var w = trans.getRotation().getW();
+            var jointVec = [tform.getOrigin().x(), tform.getOrigin().y(), tform.getOrigin().z()];
 
-            var rot = 2*Math.acos(Math.abs(w));
-//            console.log(rot);
+            var axis = trans.getRotation().normalized();
+            var vec = utils.rotateVector(jointVec, utils.RFromQuaternion([axis.x(), axis.y(), axis.z(), axis.w()]));
 
-            /*
-            console.log(body);
-            console.log('-rot-');
-            console.log(rot);
-            console.log('-pos-');
-            console.log(pos);
-            console.log('-tform-');
-            console.log(ankpos);
-            console.log('-ankle pos-');
-            */
-            var ankpos = [tform.getOrigin().x(), tform.getOrigin().y(), tform.getOrigin().z()];
-            jointEntity.setPosition([pos[0] - Math.cos(rot)*ankpos[0] + Math.sin(rot)*ankpos[1], pos[1] + Math.sin(rot)*ankpos[0] + Math.cos(rot)*ankpos[1], pos[2]]);
+            jointEntity.setPosition([pos[0] + vec[0], pos[1] + vec[1], pos[2] + vec[2]]);
 
- //       }
     };
     callback();
 };
@@ -1781,7 +1770,44 @@ Simulator.prototype.step = function(callback) {
 module.exports = Simulator;
 
 
-},{}],15:[function(require,module,exports){
+},{"../utils/utils":15}],15:[function(require,module,exports){
+
+
+var utils = {};
+
+// Q = [q.x, q.y, q.z, q.w]
+utils.RFromQuaternion = function(q) {
+
+    var qx = q[0];
+    var qy = q[1];
+    var qz = q[2];
+    var qw = q[3];
+
+    return [ 1 - 2*qy*qy - 2*qz*qz, 2*qx*qy - 2*qz*qw,     2*qx*qz + 2*qy*qw,
+             2*qx*qy + 2*qz*qw,     1 - 2*qx*qx - 2*qz*qz, 2*qy*qz - 2*qx*qw,
+             2*qx*qz - 2*qy*qw,     2*qy*qz + 2*qx*qw,     1 - 2*qx*qx - 2*qy*qy ]
+
+};
+
+// v = [x, y, z]
+// R = flat Rotation matrix
+utils.rotateVector = function(v, R) {
+    if (R.length === 9) {
+        return [R[0]*v[0] + R[1]*v[1] + R[2]*v[2],
+                R[3]*v[0] + R[4]*v[1] + R[5]*v[2],
+                R[6]*v[0] + R[7]*v[1] + R[8]*v[2]];
+    } else if (R.length === 16) {
+        return [R[0]*v[0] + R[1]*v[1] + R[2]*v[2],
+                R[4]*v[0] + R[5]*v[1] + R[6]*v[2],
+                R[8]*v[0] + R[9]*v[1] + R[10]*v[2]];
+    } else {
+        throw 'Cannot have rotation matrix with length ' + R.length;
+    }
+};
+
+module.exports = utils;
+
+},{}],16:[function(require,module,exports){
 var Box      = require('../entity/box');
 var Cylinder = require('../entity/cylinder');
 var Sphere   = require('../entity/sphere');
@@ -1886,7 +1912,7 @@ World.prototype.step = function(elapsed) {
 
 module.exports = World;
 
-},{"../entity/box":3,"../entity/capsule":4,"../entity/cylinder":5,"../entity/plane":7,"../entity/sphere":8}],16:[function(require,module,exports){
+},{"../entity/box":3,"../entity/capsule":4,"../entity/cylinder":5,"../entity/plane":7,"../entity/sphere":8}],17:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -11098,7 +11124,7 @@ return jQuery;
 
 }));
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var $           = require('jquery');
 
 var World       = require('./world/world');
@@ -11334,4 +11360,4 @@ $(document).ready(function() {
 
 });
 
-},{"./controller/pdcontroller":1,"./controller/vpdcontroller":2,"./entity/box":3,"./entity/capsule":4,"./entity/cylinder":5,"./entity/sphere":8,"./joints/ball":9,"./joints/hinge":10,"./renderer/renderer":13,"./simulator/simulator":14,"./world/world":15,"jquery":16}]},{},[17]);
+},{"./controller/pdcontroller":1,"./controller/vpdcontroller":2,"./entity/box":3,"./entity/capsule":4,"./entity/cylinder":5,"./entity/sphere":8,"./joints/ball":9,"./joints/hinge":10,"./renderer/renderer":13,"./simulator/simulator":14,"./world/world":16,"jquery":17}]},{},[18]);
