@@ -22,8 +22,8 @@ $(document).ready(function() {
     var renderer  = new Renderer();
 
     var world = new World(renderer, simulator, {FPS: FPS});
-    var ground = new Box('ground', [10,5,10], {mass: 0, color: [0,0,255]});
-    ground.setPosition([0,-2.5,0]);
+    var ground = new Box('ground', [10,1,1], {mass: 0, color: [0,0,255]});
+    ground.setPosition([0,-.5,0]);
     world.addEntity(ground);
 
     // MAKE HUMAN!
@@ -64,32 +64,12 @@ $(document).ready(function() {
             default:
                 throw "Unknown Joint type: " + jInfo.type;
         }
-        world.addJoint(joint, true);
+        world.addJoint(joint, {render: true});
     }
 
-    /*
-    var t = 0;
-    var pdc = new PDController(world.joints['rShoulder'], 0, {kp: 300, kd: 30});
-    world.go(function() {
-        if (t < 3) {
-            world.simulator.entities['uTorso'].body.applyForce(new Ammo.btVector3(1,0,0));
-        }
-        else {
-            pdc.goal = -1.57;
-            var torque = pdc.evaluate()
-            world.joints['rShoulder'].addTorque(torque);
-            console.log(torque);
-        }
-        
-
-        t += 1/1000;
-
-    });
-    */
 
     var controllers = {};
     var dt    = .3;
-    var dt2   = .03;
     var cde   = 0;
     var cdo   = -2.2;
     var cve   = -.2;
@@ -108,10 +88,10 @@ $(document).ready(function() {
     }
 
     var rHip_uTorsoVPD = new VPDController(world.joints['rHip'], world.entities['uTorso'], 0);
-    var lHip_lThighVPD = new VPDController(world.joints['lHip'], world.entities['rThigh'], 0);
+    var lHip_lThighVPD = new VPDController(world.joints['lHip'], world.entities['lThigh'], 0, {kp: -300, kd: -30});
 
     var lHip_uTorsoVPD = new VPDController(world.joints['lHip'], world.entities['uTorso'], 0);
-    var rHip_rThighVPD = new VPDController(world.joints['rHip'], world.entities['lThigh'], 0);
+    var rHip_rThighVPD = new VPDController(world.joints['rHip'], world.entities['rThigh'], 0, {kp: -300, kd: -30});
 
     var lHip = world.joints['lHip'];
     var rHip = world.joints['rHip'];
@@ -154,14 +134,10 @@ $(document).ready(function() {
                 controllers['rWrist'].kd = 3;
 
                 controllers['rKnee'].goal = swke;
-                controllers['rKnee'].kp = 300;
-                controllers['rKnee'].kd = 30;
 
                 controllers['rAnkle'].goal = ankle;
 
                 controllers['lKnee'].goal = stke;
-                controllers['lKnee'].kp = 300;
-                controllers['lKnee'].kd = 30;
 
                 controllers['lAnkle'].goal = ankle;
 
@@ -251,14 +227,6 @@ $(document).ready(function() {
             for (var name in controllers) {
                 var torque = controllers[name].evaluate();
                 controllers[name].joint.addTorque(torque);
-                if (name === 'rKnee') {
-                    console.log('---');
-                    console.log(controllers['rKnee'].goal);
-                    console.log(world.joints['rKnee'].getAngle());
-                    console.log(world.joints['rKnee'].getAngularVelocity());
-                    console.log(torque);
-                            
-                }
             }
         }
     );

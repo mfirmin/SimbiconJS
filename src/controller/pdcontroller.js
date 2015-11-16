@@ -24,7 +24,6 @@ PDController.prototype.evaluate = function() {
 
     var ret = this.kp*(this.goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
 
-
     return ret;
 
 };

@@ -28,10 +28,6 @@ Entity.prototype.setRotation = function(q) {
     this.rotation[1] = q[1];
     this.rotation[2] = q[2];
     this.rotation[3] = q[3];
-
-    if (this.name === 'uTorso') {
-//        console.log(this.rotation);
-    }
 };
 
 Entity.prototype.getPosition = function() {

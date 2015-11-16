@@ -25,7 +25,6 @@ PDController.prototype.evaluate = function() {
 
     var ret = this.kp*(this.goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
 
-
     return ret;
 
 };
@@ -60,7 +59,7 @@ VPDController.prototype.evaluate = function() {
     var currentAngle = Math.acos(this.part.getRotation()[3])*2;
     var currentAngularVelocity = this.part.getAngularVelocity();
 
-    var ret = this.kp*(this.goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
+    var ret = -this.kp*(this.goal - currentAngle); + this.kd*(0 - currentAngularVelocity);
 
     return ret;
 };
@@ -217,10 +216,6 @@ Entity.prototype.setRotation = function(q) {
     this.rotation[1] = q[1];
     this.rotation[2] = q[2];
     this.rotation[3] = q[3];
-
-    if (this.name === 'uTorso') {
-//        console.log(this.rotation);
-    }
 };
 
 Entity.prototype.getPosition = function() {
@@ -360,7 +355,7 @@ function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity, tor
     this.lo = limits.lo;
     this.hi = limits.hi;
 
-    this.torqueLimit = (torqueLimit  === undefined) ? 1000 : torqueLimit;
+    this.torqueLimit = (torqueLimit  === undefined) ? 100 : torqueLimit;
 
 }
 
@@ -379,6 +374,12 @@ Hinge.prototype.getPosition = function() {
     return this.position;
 };
 
+Hinge.prototype.setPosition = function(xyz) {
+    this.position[0] = xyz[0];
+    this.position[1] = xyz[1];
+    this.position[2] = xyz[2];
+};
+
 Hinge.prototype.getAngle = function() {
     return this.angle;
 };
@@ -388,7 +389,7 @@ Hinge.prototype.setAngle = function(ang, dt) {
     this.angle = ang;
     if (dt !== undefined) {
         this.angularVelocityPrev = this.angularVelocity;
-        this.angularVelocity = (this.angle - angleLast)*dt;
+        this.angularVelocity = (this.angle - angleLast)/dt;
     }
 };
 
@@ -1336,6 +1337,7 @@ function Renderer() {
     this.initializeDiv();
 
     this.entities = {};
+    this.joints = {};
 }
 
 
@@ -1363,8 +1365,8 @@ Renderer.prototype.initializeGL = function() {
 Renderer.prototype.initializeWorld = function() {
 
     this.scene = new THREE.Scene();
-    //this.camera = new THREE.OrthographicCamera(-20, 20, 20, -20, 1, 2000);
-    this.camera = new THREE.PerspectiveCamera(45, 1, 1, 2000);
+    this.camera = new THREE.OrthographicCamera(-2, 2, 2, -2, 0, 2000);
+//    this.camera = new THREE.PerspectiveCamera(45, 1, 1, 2000);
     this.scene.add(this.camera);
     this.light = new THREE.PointLight( 0xfffffa, 1, 0 );
     this.light.position.set(20,20,-20);
@@ -1372,7 +1374,7 @@ Renderer.prototype.initializeWorld = function() {
 
     this.camera.position.x = 0;
     this.camera.position.y = 1;
-    this.camera.position.z = -5;
+    this.camera.position.z = -10;
     this.camera.lookAt(new THREE.Vector3(0,1,0));
 
 };
@@ -1412,6 +1414,16 @@ Renderer.prototype.updateEntities = function() {
         obj.position.z = entity.position[2];
 
         obj.rotation.setFromQuaternion(new THREE.Quaternion(entity.rotation[0], entity.rotation[1], entity.rotation[2], entity.rotation[3]));
+    }
+    for (var name in this.joints) {
+
+        var joint = this.joints[name].joint;
+        var obj = this.joints[name].object;
+
+        obj.position.x = joint.position[0];
+        obj.position.y = joint.position[1];
+        obj.position.z = joint.position[2];
+
     }
 };
 
@@ -1502,6 +1514,15 @@ Renderer.prototype.addBox = function(e) {
 
     return obj3;
 
+};
+
+Renderer.prototype.addJoint = function(j) {
+
+    var entity = {color: [255, 170, 0], getRadius: function() { return .06; }};
+    var obj = this.addSphere(entity);
+
+    this.scene.add(obj);
+    this.joints[j.name] = {'object': obj, 'joint': j};
 };
 
 Renderer.prototype.addEntity = function(e) {
@@ -1628,7 +1649,6 @@ Simulator.prototype.addJoint = function(j) {
 
     this.dynamicsWorld.addConstraint(joint);
 
-    console.log(joint.getHingeAngle());
 
     this.joints[j.name] = {'joint': j, 'jointBullet': joint};
 
@@ -1727,6 +1747,33 @@ Simulator.prototype.step = function(callback) {
         if (jointEntity.getType() === 'HINGE') {
             jointEntity.setAngle(jointBullet.getHingeAngle(), this.dt);
         }
+//        if (name === 'rAnkle') {
+            var tform = jointBullet.getFrameOffsetA();
+
+            var body = jointBullet.getRigidBodyA();
+            body.getMotionState().getWorldTransform(trans);
+
+            var pos = [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()];
+
+            var w = trans.getRotation().getW();
+
+            var rot = 2*Math.acos(Math.abs(w));
+//            console.log(rot);
+
+            /*
+            console.log(body);
+            console.log('-rot-');
+            console.log(rot);
+            console.log('-pos-');
+            console.log(pos);
+            console.log('-tform-');
+            console.log(ankpos);
+            console.log('-ankle pos-');
+            */
+            var ankpos = [tform.getOrigin().x(), tform.getOrigin().y(), tform.getOrigin().z()];
+            jointEntity.setPosition([pos[0] - Math.cos(rot)*ankpos[0] + Math.sin(rot)*ankpos[1], pos[1] + Math.sin(rot)*ankpos[0] + Math.cos(rot)*ankpos[1], pos[2]]);
+
+ //       }
     };
     callback();
 };
@@ -1764,6 +1811,10 @@ World.prototype.addJoint = function(j, opts) {
     if (name in this.entities) {
         console.error('Cannot add entity. Entity with name ' + name + 'already exists.');
         return -1;
+    }
+
+    if (opts.render) {
+        this.renderer.addJoint(j);
     }
 
     this.simulator.addJoint(j);
@@ -1816,7 +1867,6 @@ World.prototype.go = function(callback) {
             scope.render();
             last = now;
         }
-
 
     }
 
@@ -11073,8 +11123,8 @@ $(document).ready(function() {
     var renderer  = new Renderer();
 
     var world = new World(renderer, simulator, {FPS: FPS});
-    var ground = new Box('ground', [10,5,10], {mass: 0, color: [0,0,255]});
-    ground.setPosition([0,-2.5,0]);
+    var ground = new Box('ground', [10,1,1], {mass: 0, color: [0,0,255]});
+    ground.setPosition([0,-.5,0]);
     world.addEntity(ground);
 
     // MAKE HUMAN!
@@ -11115,32 +11165,12 @@ $(document).ready(function() {
             default:
                 throw "Unknown Joint type: " + jInfo.type;
         }
-        world.addJoint(joint, true);
+        world.addJoint(joint, {render: true});
     }
 
-    /*
-    var t = 0;
-    var pdc = new PDController(world.joints['rShoulder'], 0, {kp: 300, kd: 30});
-    world.go(function() {
-        if (t < 3) {
-            world.simulator.entities['uTorso'].body.applyForce(new Ammo.btVector3(1,0,0));
-        }
-        else {
-            pdc.goal = -1.57;
-            var torque = pdc.evaluate()
-            world.joints['rShoulder'].addTorque(torque);
-            console.log(torque);
-        }
-        
-
-        t += 1/1000;
-
-    });
-    */
 
     var controllers = {};
     var dt    = .3;
-    var dt2   = .03;
     var cde   = 0;
     var cdo   = -2.2;
     var cve   = -.2;
@@ -11159,10 +11189,10 @@ $(document).ready(function() {
     }
 
     var rHip_uTorsoVPD = new VPDController(world.joints['rHip'], world.entities['uTorso'], 0);
-    var lHip_lThighVPD = new VPDController(world.joints['lHip'], world.entities['rThigh'], 0);
+    var lHip_lThighVPD = new VPDController(world.joints['lHip'], world.entities['lThigh'], 0, {kp: -300, kd: -30});
 
     var lHip_uTorsoVPD = new VPDController(world.joints['lHip'], world.entities['uTorso'], 0);
-    var rHip_rThighVPD = new VPDController(world.joints['rHip'], world.entities['lThigh'], 0);
+    var rHip_rThighVPD = new VPDController(world.joints['rHip'], world.entities['rThigh'], 0, {kp: -300, kd: -30});
 
     var lHip = world.joints['lHip'];
     var rHip = world.joints['rHip'];
@@ -11205,14 +11235,10 @@ $(document).ready(function() {
                 controllers['rWrist'].kd = 3;
 
                 controllers['rKnee'].goal = swke;
-                controllers['rKnee'].kp = 300;
-                controllers['rKnee'].kd = 30;
 
                 controllers['rAnkle'].goal = ankle;
 
                 controllers['lKnee'].goal = stke;
-                controllers['lKnee'].kp = 300;
-                controllers['lKnee'].kd = 30;
 
                 controllers['lAnkle'].goal = ankle;
 
@@ -11302,14 +11328,6 @@ $(document).ready(function() {
             for (var name in controllers) {
                 var torque = controllers[name].evaluate();
                 controllers[name].joint.addTorque(torque);
-                if (name === 'rKnee') {
-                    console.log('---');
-                    console.log(controllers['rKnee'].goal);
-                    console.log(world.joints['rKnee'].getAngle());
-                    console.log(world.joints['rKnee'].getAngularVelocity());
-                    console.log(torque);
-                            
-                }
             }
         }
     );

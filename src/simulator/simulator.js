@@ -86,7 +86,6 @@ Simulator.prototype.addJoint = function(j) {
 
     this.dynamicsWorld.addConstraint(joint);
 
-    console.log(joint.getHingeAngle());
 
     this.joints[j.name] = {'joint': j, 'jointBullet': joint};
 
@@ -185,6 +184,33 @@ Simulator.prototype.step = function(callback) {
         if (jointEntity.getType() === 'HINGE') {
             jointEntity.setAngle(jointBullet.getHingeAngle(), this.dt);
         }
+//        if (name === 'rAnkle') {
+            var tform = jointBullet.getFrameOffsetA();
+
+            var body = jointBullet.getRigidBodyA();
+            body.getMotionState().getWorldTransform(trans);
+
+            var pos = [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()];
+
+            var w = trans.getRotation().getW();
+
+            var rot = 2*Math.acos(Math.abs(w));
+//            console.log(rot);
+
+            /*
+            console.log(body);
+            console.log('-rot-');
+            console.log(rot);
+            console.log('-pos-');
+            console.log(pos);
+            console.log('-tform-');
+            console.log(ankpos);
+            console.log('-ankle pos-');
+            */
+            var ankpos = [tform.getOrigin().x(), tform.getOrigin().y(), tform.getOrigin().z()];
+            jointEntity.setPosition([pos[0] - Math.cos(rot)*ankpos[0] + Math.sin(rot)*ankpos[1], pos[1] + Math.sin(rot)*ankpos[0] + Math.cos(rot)*ankpos[1], pos[2]]);
+
+ //       }
     };
     callback();
 };

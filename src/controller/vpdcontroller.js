@@ -23,7 +23,7 @@ VPDController.prototype.evaluate = function() {
     var currentAngle = Math.acos(this.part.getRotation()[3])*2;
     var currentAngularVelocity = this.part.getAngularVelocity();
 
-    var ret = this.kp*(this.goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
+    var ret = -this.kp*(this.goal - currentAngle); + this.kd*(0 - currentAngularVelocity);
 
     return ret;
 };

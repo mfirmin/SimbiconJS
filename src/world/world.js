@@ -29,6 +29,10 @@ World.prototype.addJoint = function(j, opts) {
         return -1;
     }
 
+    if (opts.render) {
+        this.renderer.addJoint(j);
+    }
+
     this.simulator.addJoint(j);
 
     this.joints[name] = j;
@@ -79,7 +83,6 @@ World.prototype.go = function(callback) {
             scope.render();
             last = now;
         }
-
 
     }
 
