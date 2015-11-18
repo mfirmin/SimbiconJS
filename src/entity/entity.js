@@ -40,4 +40,8 @@ Entity.prototype.getAngularVelocity = function() {
     return 0;
 };
 
+Entity.prototype.getMass = function() {
+    return this.mass;
+};
+
 module.exports = Entity;

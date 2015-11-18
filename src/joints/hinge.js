@@ -20,7 +20,7 @@ function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity, tor
     this.lo = limits.lo;
     this.hi = limits.hi;
 
-    this.torqueLimit = (torqueLimit  === undefined) ? 100 : torqueLimit;
+    this.torqueLimit = (torqueLimit  === undefined) ? 200 : torqueLimit;
 
 }
 
@@ -59,7 +59,8 @@ Hinge.prototype.setAngle = function(ang, dt) {
 };
 
 Hinge.prototype.getAngularVelocity = function() {
-    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
+//    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
+    return this.angularVelocity;
 };
 
 Hinge.prototype.setAngularVelocity = function(angVel) {

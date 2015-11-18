@@ -59,7 +59,16 @@ VPDController.prototype.evaluate = function() {
     var currentAngle = Math.acos(this.part.getRotation()[3])*2;
     var currentAngularVelocity = this.part.getAngularVelocity();
 
-    var ret = -this.kp*(this.goal - currentAngle); + this.kd*(0 - currentAngularVelocity);
+    var goal = -this.goal;
+
+    var ret = this.kp*(goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
+
+    if (this.part.name === 'uTorso') {
+        console.log('---');
+        console.log(currentAngle);
+        console.log(currentAngularVelocity);
+        console.log(ret);
+    }
 
     return ret;
 };
@@ -228,6 +237,10 @@ Entity.prototype.getAngularVelocity = function() {
     return 0;
 };
 
+Entity.prototype.getMass = function() {
+    return this.mass;
+};
+
 module.exports = Entity;
 
 },{}],7:[function(require,module,exports){
@@ -355,7 +368,7 @@ function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity, tor
     this.lo = limits.lo;
     this.hi = limits.hi;
 
-    this.torqueLimit = (torqueLimit  === undefined) ? 100 : torqueLimit;
+    this.torqueLimit = (torqueLimit  === undefined) ? 200 : torqueLimit;
 
 }
 
@@ -394,7 +407,8 @@ Hinge.prototype.setAngle = function(ang, dt) {
 };
 
 Hinge.prototype.getAngularVelocity = function() {
-    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
+//    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
+    return this.angularVelocity;
 };
 
 Hinge.prototype.setAngularVelocity = function(angVel) {
@@ -1735,7 +1749,7 @@ Simulator.prototype.step = function(callback) {
         var entity = e.entity;
         if (body.getMotionState()) {
             body.getMotionState().getWorldTransform(trans);
-            var pos = [trans.getOrigin().x().toFixed(2), trans.getOrigin().y().toFixed(2), trans.getOrigin().z().toFixed(2)];
+            var pos = [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()];
 
             var rot = trans.getRotation();
             entity.setPosition(pos);
@@ -11187,6 +11201,7 @@ $(document).ready(function() {
                                   jInfo.position, 
                                   jInfo.axis, 
                                   {"lo": jInfo.min[2], "hi": jInfo.max[2]});
+
                 break;
             default:
                 throw "Unknown Joint type: " + jInfo.type;
@@ -11201,7 +11216,7 @@ $(document).ready(function() {
     var cdo   = -2.2;
     var cve   = -.2;
     var cvo   = 0;
-    var tor   = 0;
+    var tor   = 0.1;
     var swhe  = -.4;
     var swho  = .7;
     var swke  =  1.1;
@@ -11214,32 +11229,74 @@ $(document).ready(function() {
         controllers[name] = new PDController(world.joints[name], 0);
     }
 
-    var rHip_uTorsoVPD = new VPDController(world.joints['rHip'], world.entities['uTorso'], 0);
-    var lHip_lThighVPD = new VPDController(world.joints['lHip'], world.entities['lThigh'], 0, {kp: -300, kd: -30});
+    var rHip_uTorsoVPD = new VPDController(world.joints['rHip'], world.entities['uTorso'], 0, {kp: 300, kd: 30});
+    var lHip_lThighVPD = new VPDController(world.joints['lHip'], world.entities['lThigh'], 0, {kp: 300, kd: 30});
 
-    var lHip_uTorsoVPD = new VPDController(world.joints['lHip'], world.entities['uTorso'], 0);
-    var rHip_rThighVPD = new VPDController(world.joints['rHip'], world.entities['rThigh'], 0, {kp: -300, kd: -30});
+    var lHip_uTorsoVPD = new VPDController(world.joints['lHip'], world.entities['uTorso'], 0, {kp: 300, kd: 30});
+    var rHip_rThighVPD = new VPDController(world.joints['rHip'], world.entities['rThigh'], 0, {kp: 300, kd: 30});
 
     var lHip = world.joints['lHip'];
     var rHip = world.joints['rHip'];
 
 
+    var COM = { color: [255,0,0], position: [0,1,0], getRadius: function() { return .06; }};
+
+    var comObj = world.renderer.addSphere(COM);
+    comObj.position.y = 1;
+    world.renderer.scene.add(comObj);
+
+    function getCOM() {
+        var massTot = 0;
+        var posTot = [0,0,0];
+        for (var name in human.parts) {
+            var pos = world.entities[name].getPosition();
+            var mass = world.entities[name].getMass();
+
+            posTot = [posTot[0] + pos[0]*mass,posTot[1] + pos[1]*mass,posTot[2] + pos[2]*mass];
+            massTot += mass;
+        }
+        var ret = [posTot[0]/massTot, posTot[1]/massTot, 0];
+        return ret;
+    }
+
+    var com_last = getCOM();
+
     var t = 0;
     var phase = 0;
     world.go(function() {
+
+            var com = getCOM();
+            var com_vel = [(com[0]-com_last[0])*1000, (com[1]-com_last[1])*1000, (com[2]-com_last[2])*1000][0]; 
+
+            com_last = [com[0], com[1], com[2]];
+
+
+            comObj.position.x = com[0];
+            comObj.position.y = com[1];
+            comObj.position.z = com[2];
+
 
             t += 1/1000;
 
             if (phase === 0) {
 
+
+                // COMFB
+
+                var d = com[0] - world.joints['rAnkle'].getPosition()[0];
+
+                var optimizer = (cde*d + cve*com_vel);
+
+
                 lHip_uTorsoVPD.goal = tor;
-                rHip_rThighVPD.goal = swhe;
+                rHip_rThighVPD.goal = (swhe + optimizer);
 
                 var lh_ut_torque = lHip_uTorsoVPD.evaluate();
-                lHip.addTorque(lh_ut_torque);
+                lHip.addTorque(-lh_ut_torque);
 
                 var rh_rt_torque = rHip_rThighVPD.evaluate();
-                rHip.addTorque(rh_rt_torque);
+                rHip.addTorque(-rh_rt_torque);
+                lHip.addTorque(rh_rt_torque);
 
 
                 controllers['neck2head'].goal = 0;
@@ -11287,29 +11344,42 @@ $(document).ready(function() {
                 if (t > dt) {
                     t = 0;
                     phase = 1;
+                    console.log('1');
                 }
             } else if (phase === 1) {
+
+                var d = com[0] - world.joints['rAnkle'].getPosition()[0];
+
+                var optimizer = cdo*d + cvo*com_vel;
 
                 controllers['rKnee'].goal = swko;
                 controllers['lKnee'].goal = stko;
 
                 lHip_uTorsoVPD.goal = tor;
-                rHip_rThighVPD.goal = swho;
+                rHip_rThighVPD.goal = (swho + optimizer);
 
                 var lh_ut_torque = lHip_uTorsoVPD.evaluate();
-                lHip.addTorque(lh_ut_torque);
+                lHip.addTorque(-lh_ut_torque);
 
                 var rh_rt_torque = rHip_rThighVPD.evaluate();
-                rHip.addTorque(rh_rt_torque);
+                rHip.addTorque(-rh_rt_torque);
+                lHip.addTorque(rh_rt_torque);
 
                 var test = new Ammo.ConcreteContactResultCallback();
                 test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {
                     t= 0;
                     phase = 2;
+                    console.log('2');
                 }
                 world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['rFoot'].body, world.simulator.entities['ground'].body, test);
 
             } else if (phase === 2) {
+                var d = com[0] - world.joints['lAnkle'].getPosition()[0];
+
+                var v = 0; // COM VELOCITY
+
+                var optimizer = cde*d + cve*com_vel;
+
                 controllers['lKnee'].goal = swke;
                 controllers['rKnee'].goal = stke;
                 controllers['rShoulder'].goal = -.3;
@@ -11318,40 +11388,53 @@ $(document).ready(function() {
                 controllers['lElbow'].goal = 0;
 
                 rHip_uTorsoVPD.goal = tor;
-                lHip_lThighVPD.goal = swhe;
+                lHip_lThighVPD.goal = (swhe + optimizer);
 
                 var rh_ut_torque = rHip_uTorsoVPD.evaluate();
-                rHip.addTorque(rh_ut_torque);
+                rHip.addTorque(-rh_ut_torque);
 
                 var lh_lt_torque = lHip_lThighVPD.evaluate();
-                lHip.addTorque(lh_lt_torque);
+                lHip.addTorque(-lh_lt_torque);
+                rHip.addTorque(lh_lt_torque);
 
                 if (t > dt) {
                     t = 0;
                     phase = 3;
+                    console.log('3');
                 }
             } else if (phase === 3) {
+
+                var d = com[0] - world.joints['lAnkle'].getPosition()[0];
+
+                var v = 0; // COM VELOCITY
+
+                var optimizer = cdo*d + cvo*com_vel;
+
                 controllers['lKnee'].goal = swko;
                 controllers['rKnee'].goal = stko;
 
                 rHip_uTorsoVPD.goal = tor;
-                lHip_lThighVPD.goal = swho;
+                lHip_lThighVPD.goal = (swho + optimizer);
 
                 var rh_ut_torque = rHip_uTorsoVPD.evaluate();
-                rHip.addTorque(rh_ut_torque);
+                rHip.addTorque(-rh_ut_torque);
 
                 var lh_lt_torque = lHip_lThighVPD.evaluate();
-                lHip.addTorque(lh_lt_torque);
+                lHip.addTorque(-lh_lt_torque);
+                rHip.addTorque(lh_lt_torque);
 
                 var test = new Ammo.ConcreteContactResultCallback();
                 test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {
                     t = 0;
                     phase = 0;
+                    console.log('0');
                 }
                 world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['lFoot'].body, world.simulator.entities['ground'].body, test);
             }
 
             for (var name in controllers) {
+                if (name === 'lHip') {continue; }
+                if (name === 'rHip') {continue; }
                 var torque = controllers[name].evaluate();
                 controllers[name].joint.addTorque(torque);
             }

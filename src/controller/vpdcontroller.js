@@ -23,7 +23,16 @@ VPDController.prototype.evaluate = function() {
     var currentAngle = Math.acos(this.part.getRotation()[3])*2;
     var currentAngularVelocity = this.part.getAngularVelocity();
 
-    var ret = -this.kp*(this.goal - currentAngle); + this.kd*(0 - currentAngularVelocity);
+    var goal = -this.goal;
+
+    var ret = this.kp*(goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
+
+    if (this.part.name === 'uTorso') {
+        console.log('---');
+        console.log(currentAngle);
+        console.log(currentAngularVelocity);
+        console.log(ret);
+    }
 
     return ret;
 };

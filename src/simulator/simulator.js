@@ -172,7 +172,7 @@ Simulator.prototype.step = function(callback) {
         var entity = e.entity;
         if (body.getMotionState()) {
             body.getMotionState().getWorldTransform(trans);
-            var pos = [trans.getOrigin().x().toFixed(2), trans.getOrigin().y().toFixed(2), trans.getOrigin().z().toFixed(2)];
+            var pos = [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()];
 
             var rot = trans.getRotation();
             entity.setPosition(pos);
