@@ -14,6 +14,8 @@ function VPDController(joint, part, goal, options) {
     this.kd = (options.kd === undefined) ? KD : options.kd;
     this.goalVelocity = (options.goalVelocity === undefined) ? 0 : optionsgoalVelocity;
 
+    this.lastAngle;
+
 }
 
 VPDController.prototype.constructor = VPDController;
@@ -21,18 +23,27 @@ VPDController.prototype.constructor = VPDController;
 VPDController.prototype.evaluate = function() {
 
     var currentAngle = Math.acos(this.part.getRotation()[3])*2;
-    var currentAngularVelocity = this.part.getAngularVelocity();
+
+    if (this.lastAngle === undefined) {
+       this.lastAngle = currentAngle; 
+    } 
+
+    var currentAngularVelocity = (currentAngle - this.lastAngle)*1000;
 
     var goal = -this.goal;
 
     var ret = this.kp*(goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
 
     if (this.part.name === 'uTorso') {
-        console.log('---');
+        /*
+        console.log('-uTorso-');
+        console.log(ret);
         console.log(currentAngle);
         console.log(currentAngularVelocity);
-        console.log(ret);
+        */
     }
+
+    this.lastAngle = currentAngle;
 
     return ret;
 };

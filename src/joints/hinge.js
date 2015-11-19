@@ -60,6 +60,7 @@ Hinge.prototype.setAngle = function(ang, dt) {
 
 Hinge.prototype.getAngularVelocity = function() {
 //    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
+//    return 0;
     return this.angularVelocity;
 };
 
@@ -85,7 +86,10 @@ Hinge.prototype.getTorque = function() {
 
 Hinge.prototype.getLimitedTorque = function() {
     var ret = this.torque;
-    if (Math.abs(ret) > this.torqueLimit) { return this.torqueLimit * ret/Math.abs(ret); }
+    if (Math.abs(ret) > this.torqueLimit) { 
+        ret = this.torqueLimit * ret/Math.abs(ret); 
+        return ret;
+    }
 
     return this.torque;
 };

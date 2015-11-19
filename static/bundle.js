@@ -50,6 +50,8 @@ function VPDController(joint, part, goal, options) {
     this.kd = (options.kd === undefined) ? KD : options.kd;
     this.goalVelocity = (options.goalVelocity === undefined) ? 0 : optionsgoalVelocity;
 
+    this.lastAngle;
+
 }
 
 VPDController.prototype.constructor = VPDController;
@@ -57,18 +59,27 @@ VPDController.prototype.constructor = VPDController;
 VPDController.prototype.evaluate = function() {
 
     var currentAngle = Math.acos(this.part.getRotation()[3])*2;
-    var currentAngularVelocity = this.part.getAngularVelocity();
+
+    if (this.lastAngle === undefined) {
+       this.lastAngle = currentAngle; 
+    } 
+
+    var currentAngularVelocity = (currentAngle - this.lastAngle)*1000;
 
     var goal = -this.goal;
 
     var ret = this.kp*(goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
 
     if (this.part.name === 'uTorso') {
-        console.log('---');
+        /*
+        console.log('-uTorso-');
+        console.log(ret);
         console.log(currentAngle);
         console.log(currentAngularVelocity);
-        console.log(ret);
+        */
     }
+
+    this.lastAngle = currentAngle;
 
     return ret;
 };
@@ -234,7 +245,8 @@ Entity.prototype.getRotation = function() {
     return this.rotation;
 };
 Entity.prototype.getAngularVelocity = function() {
-    return 0;
+    throw ' IMPLEMENT ME';
+    return ;
 };
 
 Entity.prototype.getMass = function() {
@@ -408,6 +420,7 @@ Hinge.prototype.setAngle = function(ang, dt) {
 
 Hinge.prototype.getAngularVelocity = function() {
 //    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
+//    return 0;
     return this.angularVelocity;
 };
 
@@ -433,7 +446,10 @@ Hinge.prototype.getTorque = function() {
 
 Hinge.prototype.getLimitedTorque = function() {
     var ret = this.torque;
-    if (Math.abs(ret) > this.torqueLimit) { return this.torqueLimit * ret/Math.abs(ret); }
+    if (Math.abs(ret) > this.torqueLimit) { 
+        ret = this.torqueLimit * ret/Math.abs(ret); 
+        return ret;
+    }
 
     return this.torque;
 };
@@ -1657,7 +1673,7 @@ Simulator.prototype.addJoint = function(j) {
         }
 
         if (j.lo !== undefined) {
-            joint.setLimit(j.lo*Math.PI/180, j.hi*Math.PI/180, 1.0, 1.0, 0.0);
+            joint.setLimit(j.lo*Math.PI/180, j.hi*Math.PI/180, 0.1, 1.0, .3);
 //            joint.setLimit(-0.1, 0.1, 0.8, .3, .9);
         }
 
@@ -11437,6 +11453,12 @@ $(document).ready(function() {
                 if (name === 'rHip') {continue; }
                 var torque = controllers[name].evaluate();
                 controllers[name].joint.addTorque(torque);
+
+                if (name === 'rShoulder') {
+                    
+                    console.log('--');
+                    console.log(torque);
+                }
             }
         }
     );

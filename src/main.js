@@ -296,6 +296,12 @@ $(document).ready(function() {
                 if (name === 'rHip') {continue; }
                 var torque = controllers[name].evaluate();
                 controllers[name].joint.addTorque(torque);
+
+                if (name === 'rShoulder') {
+                    
+                    console.log('--');
+                    console.log(torque);
+                }
             }
         }
     );

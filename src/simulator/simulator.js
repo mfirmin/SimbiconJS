@@ -80,7 +80,7 @@ Simulator.prototype.addJoint = function(j) {
         }
 
         if (j.lo !== undefined) {
-            joint.setLimit(j.lo*Math.PI/180, j.hi*Math.PI/180, 1.0, 1.0, 0.0);
+            joint.setLimit(j.lo*Math.PI/180, j.hi*Math.PI/180, 0.1, 1.0, .3);
 //            joint.setLimit(-0.1, 0.1, 0.8, .3, .9);
         }
 

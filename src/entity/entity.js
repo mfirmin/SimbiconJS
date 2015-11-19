@@ -37,7 +37,8 @@ Entity.prototype.getRotation = function() {
     return this.rotation;
 };
 Entity.prototype.getAngularVelocity = function() {
-    return 0;
+    throw ' IMPLEMENT ME';
+    return ;
 };
 
 Entity.prototype.getMass = function() {
