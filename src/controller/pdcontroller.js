@@ -24,6 +24,15 @@ PDController.prototype.evaluate = function() {
 
     var ret = this.kp*(this.goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
 
+    if (this.joint.name === 'rShoulder') {
+        /*
+        console.log('-Shoulder Goal,angle,vel-');
+        console.log(this.goal);
+        console.log(currentAngle);
+        console.log(currentAngularVelocity);
+        */
+    }
+
     return ret;
 
 };

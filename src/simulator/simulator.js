@@ -5,7 +5,7 @@ function Simulator(opts) {
 
     this.opts = (opts === undefined) ? {} : opts; 
 
-    this.dt = (this.opts.dt === undefined) ? 1/1000 : this.opts.dt;
+    this.dt = (this.opts.dt === undefined) ? 0.0001: this.opts.dt;
     this.FPS = (this.opts.FPS === undefined) ? 1/30 : this.opts.FPS;
 
     this.entities = {};

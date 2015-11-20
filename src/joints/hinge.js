@@ -55,13 +55,18 @@ Hinge.prototype.setAngle = function(ang, dt) {
     if (dt !== undefined) {
         this.angularVelocityPrev = this.angularVelocity;
         this.angularVelocity = (this.angle - angleLast)/dt;
+        if (this.name === 'rShoulder') {
+            //console.log('-shoulder angle,vel (set)-');
+//            console.log(ang);
+            //console.log(this.angularVelocity);
+        }
     }
 };
 
 Hinge.prototype.getAngularVelocity = function() {
-//    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
+    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
 //    return 0;
-    return this.angularVelocity;
+//    return this.angularVelocity;
 };
 
 Hinge.prototype.setAngularVelocity = function(angVel) {

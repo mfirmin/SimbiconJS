@@ -125,7 +125,7 @@ $(document).ready(function() {
     world.go(function() {
 
             var com = getCOM();
-            var com_vel = [(com[0]-com_last[0])*1000, (com[1]-com_last[1])*1000, (com[2]-com_last[2])*1000][0]; 
+            var com_vel = [(com[0]-com_last[0])*10000, (com[1]-com_last[1])*10000, (com[2]-com_last[2])*10000][0]; 
 
             com_last = [com[0], com[1], com[2]];
 
@@ -135,7 +135,7 @@ $(document).ready(function() {
             comObj.position.z = com[2];
 
 
-            t += 1/1000;
+            t += 0.0001;
 
             if (phase === 0) {
 
@@ -294,13 +294,15 @@ $(document).ready(function() {
             for (var name in controllers) {
                 if (name === 'lHip') {continue; }
                 if (name === 'rHip') {continue; }
-                var torque = controllers[name].evaluate();
-                controllers[name].joint.addTorque(torque);
+                    var torque = controllers[name].evaluate();
+                    controllers[name].joint.addTorque(torque);
 
                 if (name === 'rShoulder') {
                     
-                    console.log('--');
+                    /*
+                    console.log('-torque (applied)-');
                     console.log(torque);
+                    */
                 }
             }
         }

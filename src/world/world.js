@@ -76,7 +76,7 @@ World.prototype.go = function(callback) {
         var now = Date.now();
         var elapsed = now - last;
         if (elapsed > 1/30*1000) {
-            for (var time = 0; time < 1/120; time+= 1/1000) {
+            for (var time = 0; time < 1/120; time+= 0.0001) {
                 scope.step(callback);
             }
 

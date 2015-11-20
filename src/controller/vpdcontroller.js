@@ -28,7 +28,7 @@ VPDController.prototype.evaluate = function() {
        this.lastAngle = currentAngle; 
     } 
 
-    var currentAngularVelocity = (currentAngle - this.lastAngle)*1000;
+    var currentAngularVelocity = (currentAngle - this.lastAngle)*10000;
 
     var goal = -this.goal;
 

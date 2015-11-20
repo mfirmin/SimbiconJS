@@ -25,6 +25,15 @@ PDController.prototype.evaluate = function() {
 
     var ret = this.kp*(this.goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
 
+    if (this.joint.name === 'rShoulder') {
+        /*
+        console.log('-Shoulder Goal,angle,vel-');
+        console.log(this.goal);
+        console.log(currentAngle);
+        console.log(currentAngularVelocity);
+        */
+    }
+
     return ret;
 
 };
@@ -64,7 +73,7 @@ VPDController.prototype.evaluate = function() {
        this.lastAngle = currentAngle; 
     } 
 
-    var currentAngularVelocity = (currentAngle - this.lastAngle)*1000;
+    var currentAngularVelocity = (currentAngle - this.lastAngle)*10000;
 
     var goal = -this.goal;
 
@@ -415,13 +424,18 @@ Hinge.prototype.setAngle = function(ang, dt) {
     if (dt !== undefined) {
         this.angularVelocityPrev = this.angularVelocity;
         this.angularVelocity = (this.angle - angleLast)/dt;
+        if (this.name === 'rShoulder') {
+            //console.log('-shoulder angle,vel (set)-');
+//            console.log(ang);
+            //console.log(this.angularVelocity);
+        }
     }
 };
 
 Hinge.prototype.getAngularVelocity = function() {
-//    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
+    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
 //    return 0;
-    return this.angularVelocity;
+//    return this.angularVelocity;
 };
 
 Hinge.prototype.setAngularVelocity = function(angVel) {
@@ -1598,7 +1612,7 @@ function Simulator(opts) {
 
     this.opts = (opts === undefined) ? {} : opts; 
 
-    this.dt = (this.opts.dt === undefined) ? 1/1000 : this.opts.dt;
+    this.dt = (this.opts.dt === undefined) ? 0.0001: this.opts.dt;
     this.FPS = (this.opts.FPS === undefined) ? 1/30 : this.opts.FPS;
 
     this.entities = {};
@@ -1916,7 +1930,7 @@ World.prototype.go = function(callback) {
         var now = Date.now();
         var elapsed = now - last;
         if (elapsed > 1/30*1000) {
-            for (var time = 0; time < 1/120; time+= 1/1000) {
+            for (var time = 0; time < 1/120; time+= 0.0001) {
                 scope.step(callback);
             }
 
@@ -11282,7 +11296,7 @@ $(document).ready(function() {
     world.go(function() {
 
             var com = getCOM();
-            var com_vel = [(com[0]-com_last[0])*1000, (com[1]-com_last[1])*1000, (com[2]-com_last[2])*1000][0]; 
+            var com_vel = [(com[0]-com_last[0])*10000, (com[1]-com_last[1])*10000, (com[2]-com_last[2])*10000][0]; 
 
             com_last = [com[0], com[1], com[2]];
 
@@ -11292,7 +11306,7 @@ $(document).ready(function() {
             comObj.position.z = com[2];
 
 
-            t += 1/1000;
+            t += 0.0001;
 
             if (phase === 0) {
 
@@ -11451,13 +11465,15 @@ $(document).ready(function() {
             for (var name in controllers) {
                 if (name === 'lHip') {continue; }
                 if (name === 'rHip') {continue; }
-                var torque = controllers[name].evaluate();
-                controllers[name].joint.addTorque(torque);
+                    var torque = controllers[name].evaluate();
+                    controllers[name].joint.addTorque(torque);
 
                 if (name === 'rShoulder') {
                     
-                    console.log('--');
+                    /*
+                    console.log('-torque (applied)-');
                     console.log(torque);
+                    */
                 }
             }
         }
