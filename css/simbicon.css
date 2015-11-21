@@ -1,0 +1,23 @@
+
+
+#main {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+#simbicon {
+    position: absolute;
+    width: 90vh;
+    height: 90vh;
+    left: 0vw;
+}
+
+#controlpanel {
+    position: absolute;
+    width: 100vw;
+    height: 10vh;
+    left: 0vw;
+    top: 0px;
+}
+

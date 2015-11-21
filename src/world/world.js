@@ -87,12 +87,6 @@ World.prototype.go = function(simulationCallback, renderCallback) {
 
     }
 
-    /*
-    for (var i = 0; i < 1000; i++) {
-        animate();
-    }
-    */
-
     requestAnimationFrame(animate);
 
 };

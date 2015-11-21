@@ -59,6 +59,7 @@ Renderer.prototype.initializeWorld = function() {
 
 Renderer.prototype.initializeDiv = function() {
 
+    /*
     this.panel = $('<div>')
         .addClass('threeworld')
         .attr({tabindex:0})
@@ -67,12 +68,31 @@ Renderer.prototype.initializeDiv = function() {
             width: 400,
             height: 400,
         });
+    */
+    this.panel = $('<div>')
+        .addClass('threeContext')
+        .attr({tabindex:0});
 
     this.renderer.setSize(400,400);
 
     this.canvas = $(this.renderer.domElement).width(400).height(400).addClass("threeCanvas");
     $(this.panel).append(this.canvas);
-    $('body').append(this.panel);
+};
+
+Renderer.prototype.setSize = function() {
+
+    var w = $('#simbicon').width();
+    var h = $('#simbicon').height();
+
+    this.canvas.width(w);
+    this.canvas.height(h);
+
+    this.renderer.setSize(w, h);
+
+    this.camera.aspect = w/h;
+    this.camera.updateProjectionMatrix();
+
+//    this.panel.css({width: w, height: h});
 };
 
 Renderer.prototype.render = function() {

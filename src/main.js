@@ -16,7 +16,7 @@ var VPDController = require('./controller/vpdcontroller');
 var FPS = 1000/30;
 
 
-$(document).ready(function() {
+//$(document).ready(function() {
 
     var simulator = new Simulator();
     var renderer  = new Renderer();
@@ -68,21 +68,29 @@ $(document).ready(function() {
         world.addJoint(joint, {render: false});
     }
 
-
     var controllers = {};
-    var dt    = .3;
-    var cde   = 0;
-    var cdo   = -2.2;
-    var cve   = -.2;
-    var cvo   = 0;
-    var tor   = 0.;
-    var swhe  = -.4;
-    var swho  = .7;
-    var swke  =  1.1;
-    var swko  = .05;
-    var stke  = .05;
-    var stko  = .1;
-    var ankle = -.2;
+
+    var simbiconParams = {
+        dt: .3,
+        cde: 0,
+        cdo: -2.2,
+        cve: -.2,
+        cvo: 0,
+        tor: 0.,
+        swhe: -.4,
+        swho: .7,
+        swke:  1.1,
+        swko: .05,
+        stke: .05,
+        stko: .1,
+        ankle: -.2,
+    }
+
+    window.setSimbiconParameters = function(set) {
+        for (var entry in set) {
+            simbiconParams[entry] = set[entry];
+        }
+    };
 
     for (var name in human.joints) {
         controllers[name] = new PDController(world.joints[name], 0);
@@ -122,178 +130,173 @@ $(document).ready(function() {
 
     var t = 0;
     var phase = 0;
-    world.go(function() {
 
-            var com = getCOM();
-            var com_vel = (com[0]-com_last[0])*10000;
+window.simulationCallback = function() {
 
-            com_last = [com[0], com[1], com[2]];
+    var com = getCOM();
+    var com_vel = (com[0]-com_last[0])*10000;
 
-            /*
-            comObj.position.x = com[0];
-            comObj.position.y = com[1];
-            comObj.position.z = com[2];
-            */
+    com_last = [com[0], com[1], com[2]];
 
+    t += 0.0001;
 
-            t += 0.0001;
-
-            if (phase === 0) {
+    if (phase === 0) {
 
 
-                // COMFB
+        // COMFB
 
-                var d = com[0] - world.joints['rAnkle'].getPosition()[0];
+        var d = com[0] - world.joints['rAnkle'].getPosition()[0];
 
-                var optimizer = (cde*d + cve*com_vel);
+        var optimizer = (simbiconParams.cde*d + simbiconParams.cve*com_vel);
 
-                lHip_uTorsoVPD.goal = tor;
-                rHip_rThighVPD.goal = (swhe + optimizer);
+        lHip_uTorsoVPD.goal = simbiconParams.tor;
+        rHip_rThighVPD.goal = (simbiconParams.swhe + optimizer);
 
-                var lh_ut_torque = lHip_uTorsoVPD.evaluate();
-                lHip.addTorque(+lh_ut_torque);
+        var lh_ut_torque = lHip_uTorsoVPD.evaluate();
+        lHip.addTorque(+lh_ut_torque);
 
-                var rh_rt_torque = rHip_rThighVPD.evaluate();
-                rHip.addTorque(+rh_rt_torque);
-                lHip.addTorque(-rh_rt_torque);
-
-
-                controllers['neck2head'].goal = 0;
-                controllers['uTorso2neck'].goal = 0;
-                controllers['waist'].goal = 0;
-                controllers['waist'].kp = 600;
-                controllers['waist'].kd = 60;
-
-                controllers['lTorso2uTorso'].goal = 0;
-                controllers['lTorso2uTorso'].kp = 600;
-                controllers['lTorso2uTorso'].kd = 60;
-
-                controllers['lWrist'].goal = 0;
-                controllers['lWrist'].kp = 5;
-                controllers['lWrist'].kd = 3;
-
-                controllers['rWrist'].goal = 0;
-                controllers['rWrist'].kp = 5;
-                controllers['rWrist'].kd = 3;
-
-                controllers['rKnee'].goal = swke;
-
-                controllers['rAnkle'].goal = ankle;
-
-                controllers['lKnee'].goal = stke;
-
-                controllers['lAnkle'].goal = ankle;
-
-                controllers['rShoulder'].goal = .3;
-                controllers['rShoulder'].kp = 100;
-                controllers['rShoulder'].kd = 30;
-
-                controllers['rElbow'].goal = 0;
-                controllers['rElbow'].kp = 100;
-                controllers['rElbow'].kd = 30;
+        var rh_rt_torque = rHip_rThighVPD.evaluate();
+        rHip.addTorque(+rh_rt_torque);
+        lHip.addTorque(-rh_rt_torque);
 
 
-                controllers['lShoulder'].goal = -.3;
-                controllers['lShoulder'].kp = 100;
-                controllers['lShoulder'].kd = 30;
+        controllers['neck2head'].goal = 0;
+        controllers['uTorso2neck'].goal = 0;
+        controllers['waist'].goal = 0;
+        controllers['waist'].kp = 600;
+        controllers['waist'].kd = 60;
 
-                controllers['rElbow'].goal = -.4;
-                controllers['rElbow'].kp = 100;
-                controllers['rElbow'].kd = 30;
-                if (t > dt) {
-                    t = 0;
-                    phase = 1;
-                }
-            } else if (phase === 1) {
+        controllers['lTorso2uTorso'].goal = 0;
+        controllers['lTorso2uTorso'].kp = 600;
+        controllers['lTorso2uTorso'].kd = 60;
 
-                var d = com[0] - world.joints['rAnkle'].getPosition()[0];
+        controllers['lWrist'].goal = 0;
+        controllers['lWrist'].kp = 5;
+        controllers['lWrist'].kd = 3;
 
-                var optimizer = cdo*d + cvo*com_vel;
+        controllers['rWrist'].goal = 0;
+        controllers['rWrist'].kp = 5;
+        controllers['rWrist'].kd = 3;
 
-                controllers['rKnee'].goal = swko;
-                controllers['lKnee'].goal = stko;
+        controllers['rKnee'].goal = simbiconParams.swke;
 
-                lHip_uTorsoVPD.goal = tor;
-                rHip_rThighVPD.goal = (swho + optimizer);
+        controllers['rAnkle'].goal = simbiconParams.ankle;
 
-                var lh_ut_torque = lHip_uTorsoVPD.evaluate();
-                lHip.addTorque(+lh_ut_torque);
+        controllers['lKnee'].goal = simbiconParams.stke;
 
-                var rh_rt_torque = rHip_rThighVPD.evaluate();
-                rHip.addTorque(+rh_rt_torque);
-                lHip.addTorque(-rh_rt_torque);
+        controllers['lAnkle'].goal = simbiconParams.ankle;
 
-                var test = new Ammo.ConcreteContactResultCallback();
-                test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {
-                    t= 0;
-                    phase = 2;
-                }
-                world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['rFoot'].body, world.simulator.entities['ground'].body, test);
+        controllers['rShoulder'].goal = .3;
+        controllers['rShoulder'].kp = 100;
+        controllers['rShoulder'].kd = 30;
 
-            } else if (phase === 2) {
-                var d = com[0] - world.joints['lAnkle'].getPosition()[0];
+        controllers['rElbow'].goal = 0;
+        controllers['rElbow'].kp = 100;
+        controllers['rElbow'].kd = 30;
 
-                var optimizer = cde*d + cve*com_vel;
 
-                controllers['lKnee'].goal = swke;
-                controllers['rKnee'].goal = stke;
-                controllers['rShoulder'].goal = -.3;
-                controllers['lShoulder'].goal = .3;
-                controllers['rElbow'].goal = -.4;
-                controllers['lElbow'].goal = 0;
+        controllers['lShoulder'].goal = -.3;
+        controllers['lShoulder'].kp = 100;
+        controllers['lShoulder'].kd = 30;
 
-                rHip_uTorsoVPD.goal = tor;
-                lHip_lThighVPD.goal = (swhe + optimizer);
-
-                var rh_ut_torque = rHip_uTorsoVPD.evaluate();
-                rHip.addTorque(+rh_ut_torque);
-
-                var lh_lt_torque = lHip_lThighVPD.evaluate();
-                lHip.addTorque(+lh_lt_torque);
-                rHip.addTorque(-lh_lt_torque);
-
-                if (t > dt) {
-                    t = 0;
-                    phase = 3;
-                }
-            } else if (phase === 3) {
-
-                var d = com[0] - world.joints['lAnkle'].getPosition()[0];
-
-                var optimizer = cdo*d + cvo*com_vel;
-
-                controllers['lKnee'].goal = swko;
-                controllers['rKnee'].goal = stko;
-
-                rHip_uTorsoVPD.goal = tor;
-                lHip_lThighVPD.goal = (swho + optimizer);
-
-                var rh_ut_torque = rHip_uTorsoVPD.evaluate();
-                rHip.addTorque(+rh_ut_torque);
-
-                var lh_lt_torque = lHip_lThighVPD.evaluate();
-                lHip.addTorque(+lh_lt_torque);
-                rHip.addTorque(-lh_lt_torque);
-
-                var test = new Ammo.ConcreteContactResultCallback();
-                test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {
-                    t = 0;
-                    phase = 0;
-                }
-                world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['lFoot'].body, world.simulator.entities['ground'].body, test);
-            }
-
-            for (var name in controllers) {
-                if (name === 'lHip') {continue; }
-                if (name === 'rHip') {continue; }
-                var torque = controllers[name].evaluate();
-                controllers[name].joint.addTorque(torque);
-            }
-        },
-        function() {
-            var com = getCOM();
-            world.renderer.camera.position.x = com[0];
+        controllers['rElbow'].goal = -.4;
+        controllers['rElbow'].kp = 100;
+        controllers['rElbow'].kd = 30;
+        if (t > simbiconParams.dt) {
+            t = 0;
+            phase = 1;
         }
-    );
+    } else if (phase === 1) {
 
-});
+        var d = com[0] - world.joints['rAnkle'].getPosition()[0];
+
+        var optimizer = simbiconParams.cdo*d + simbiconParams.cvo*com_vel;
+
+        controllers['rKnee'].goal = simbiconParams.swko;
+        controllers['lKnee'].goal = simbiconParams.stko;
+
+        lHip_uTorsoVPD.goal = simbiconParams.tor;
+        rHip_rThighVPD.goal = (simbiconParams.swho + optimizer);
+
+        var lh_ut_torque = lHip_uTorsoVPD.evaluate();
+        lHip.addTorque(+lh_ut_torque);
+
+        var rh_rt_torque = rHip_rThighVPD.evaluate();
+        rHip.addTorque(+rh_rt_torque);
+        lHip.addTorque(-rh_rt_torque);
+
+        var test = new Ammo.ConcreteContactResultCallback();
+        test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {
+            t= 0;
+            phase = 2;
+        }
+        world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['rFoot'].body, world.simulator.entities['ground'].body, test);
+
+    } else if (phase === 2) {
+        var d = com[0] - world.joints['lAnkle'].getPosition()[0];
+
+        var optimizer = simbiconParams.cde*d + simbiconParams.cve*com_vel;
+
+        controllers['lKnee'].goal = simbiconParams.swke;
+        controllers['rKnee'].goal = simbiconParams.stke;
+        controllers['rShoulder'].goal = -.3;
+        controllers['lShoulder'].goal = .3;
+        controllers['rElbow'].goal = -.4;
+        controllers['lElbow'].goal = 0;
+
+        rHip_uTorsoVPD.goal = simbiconParams.tor;
+        lHip_lThighVPD.goal = (simbiconParams.swhe + optimizer);
+
+        var rh_ut_torque = rHip_uTorsoVPD.evaluate();
+        rHip.addTorque(+rh_ut_torque);
+
+        var lh_lt_torque = lHip_lThighVPD.evaluate();
+        lHip.addTorque(+lh_lt_torque);
+        rHip.addTorque(-lh_lt_torque);
+
+        if (t > simbiconParams.dt) {
+            t = 0;
+            phase = 3;
+        }
+    } else if (phase === 3) {
+
+        var d = com[0] - world.joints['lAnkle'].getPosition()[0];
+
+        var optimizer = simbiconParams.cdo*d + simbiconParams.cvo*com_vel;
+
+        controllers['lKnee'].goal = simbiconParams.swko;
+        controllers['rKnee'].goal = simbiconParams.stko;
+
+        rHip_uTorsoVPD.goal = simbiconParams.tor;
+        lHip_lThighVPD.goal = (simbiconParams.swho + optimizer);
+
+        var rh_ut_torque = rHip_uTorsoVPD.evaluate();
+        rHip.addTorque(+rh_ut_torque);
+
+        var lh_lt_torque = lHip_lThighVPD.evaluate();
+        lHip.addTorque(+lh_lt_torque);
+        rHip.addTorque(-lh_lt_torque);
+
+        var test = new Ammo.ConcreteContactResultCallback();
+        test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {
+            t = 0;
+            phase = 0;
+        }
+        world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['lFoot'].body, world.simulator.entities['ground'].body, test);
+    }
+
+    for (var name in controllers) {
+        if (name === 'lHip') {continue; }
+        if (name === 'rHip') {continue; }
+        var torque = controllers[name].evaluate();
+        controllers[name].joint.addTorque(torque);
+    }
+};
+window.renderCallback = function() {
+    var com = getCOM();
+    world.renderer.camera.position.x = com[0];
+}
+
+window.world = world;
+
+//});

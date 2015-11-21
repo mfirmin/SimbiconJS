@@ -4,11 +4,67 @@ title: SimbiconJS
 <!doctype html>
 <html>
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <title>SimbiconJS</title>
+        <link rel="stylesheet" type="text/css" href="css/simbicon.css">
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
         <script src="static/ammo.js"></script>
         <script src="static/human.js"></script>
         <script src="static/bundle.js"></script>
-        <h1>SimbiconJS</h1>
+        <script>
+            $(document).ready(function() {
+
+                $('#simbicon').append(world.renderer.panel);
+                world.renderer.setSize();
+
+                world.go(simulationCallback, renderCallback);
+
+                $('#fwalk').click(function() {
+                    setSimbiconParameters({
+                        dt: .2,
+                        cde: 0,
+                        cdo: -2.,
+                        cve: -.2,
+                        cvo: 0,
+                        tor: 0.1,
+                        swhe: -.73,
+                        swho: .7,
+                        swke:  1.83,
+                        swko: .05,
+                        stke: .05,
+                        stko: .1,
+                        ankle: -.2,
+                    });
+                });
+
+                $('#walk').click(function() {
+                    setSimbiconParameters({
+                        dt: .3,
+                        cde: 0,
+                        cdo: -2.2,
+                        cve: -.2,
+                        cvo: 0,
+                        tor: 0.,
+                        swhe: -.4,
+                        swho: .7,
+                        swke:  1.1,
+                        swko: .05,
+                        stke: .05,
+                        stko: .1,
+                        ankle: -.2,
+                    });
+                });
+            });
+        </script>
     </head>
+    <body>
+        <h1>SimbiconJS</h1>
+        <div id='main'>
+            <div id='simbicon'></div>
+            <div id='controlpanel'>
+                <button id='walk'>Walk</button> <br>
+                <button id='fwalk'>Fast Walk</button> 
+            </div>
+        </div>
+    </body>
 </html>
