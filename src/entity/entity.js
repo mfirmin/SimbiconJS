@@ -5,7 +5,7 @@ function Entity(name, opts) {
     this.name = name;
 
     this.position = [0,0,0];
-    this.rotation = [0,0,0,0];
+    this.rotation = [0,0,0,0]; // q.v, q.w
     this.mass = (opts.mass === undefined) ? 0 : opts.mass;
     this.color = (opts.color === undefined) ? [130,130,130] : opts.color;
 
@@ -32,9 +32,21 @@ Entity.prototype.setRotation = function(q) {
 
 Entity.prototype.getPosition = function() {
     return this.position;
-}
+};
 Entity.prototype.getRotation = function() {
     return this.rotation;
-}
+};
+
+Entity.prototype.getAngle = function() {
+
+};
+Entity.prototype.getAngularVelocity = function() {
+    throw ' IMPLEMENT ME';
+    return ;
+};
+
+Entity.prototype.getMass = function() {
+    return this.mass;
+};
 
 module.exports = Entity;

@@ -15,6 +15,7 @@ function Renderer() {
     this.initializeDiv();
 
     this.entities = {};
+    this.joints = {};
 }
 
 
@@ -42,8 +43,8 @@ Renderer.prototype.initializeGL = function() {
 Renderer.prototype.initializeWorld = function() {
 
     this.scene = new THREE.Scene();
-    //this.camera = new THREE.OrthographicCamera(-20, 20, 20, -20, 1, 2000);
-    this.camera = new THREE.PerspectiveCamera(45, 1, 1, 2000);
+    this.camera = new THREE.OrthographicCamera(-2, 2, 2, -2, 0, 2000);
+//    this.camera = new THREE.PerspectiveCamera(45, 1, 1, 2000);
     this.scene.add(this.camera);
     this.light = new THREE.PointLight( 0xfffffa, 1, 0 );
     this.light.position.set(20,20,-20);
@@ -51,7 +52,7 @@ Renderer.prototype.initializeWorld = function() {
 
     this.camera.position.x = 0;
     this.camera.position.y = 1;
-    this.camera.position.z = -5;
+    this.camera.position.z = -10;
     this.camera.lookAt(new THREE.Vector3(0,1,0));
 
 };
@@ -91,6 +92,16 @@ Renderer.prototype.updateEntities = function() {
         obj.position.z = entity.position[2];
 
         obj.rotation.setFromQuaternion(new THREE.Quaternion(entity.rotation[0], entity.rotation[1], entity.rotation[2], entity.rotation[3]));
+    }
+    for (var name in this.joints) {
+
+        var joint = this.joints[name].joint;
+        var obj = this.joints[name].object;
+
+        obj.position.x = joint.position[0];
+        obj.position.y = joint.position[1];
+        obj.position.z = joint.position[2];
+
     }
 };
 
@@ -181,6 +192,15 @@ Renderer.prototype.addBox = function(e) {
 
     return obj3;
 
+};
+
+Renderer.prototype.addJoint = function(j) {
+
+    var entity = {color: [255, 170, 0], getRadius: function() { return .06; }};
+    var obj = this.addSphere(entity);
+
+    this.scene.add(obj);
+    this.joints[j.name] = {'object': obj, 'joint': j};
 };
 
 Renderer.prototype.addEntity = function(e) {

@@ -2,17 +2,17 @@ var human = {
     "joints": {
         "lAnkle": {
             "A": "lShin",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 60
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -60
@@ -32,17 +32,17 @@ var human = {
         },
         "lElbow": {
             "A": "lArm",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -157.5
@@ -62,17 +62,17 @@ var human = {
         },
         "lHip": {
             "A": "pelvis",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 45
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -135.0
@@ -92,17 +92,17 @@ var human = {
         },
         "lKnee": {
             "A": "lThigh",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 157.5
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 0
@@ -122,17 +122,17 @@ var human = {
         },
         "lShoulder": {
             "A": "uTorso",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 90
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -179.999
@@ -152,17 +152,17 @@ var human = {
         },
         "lTorso2uTorso": {
             "A": "lTorso",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 22.5
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -22.5
@@ -182,17 +182,17 @@ var human = {
         },
         "lWrist": {
             "A": "lForearm",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 90
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -90
@@ -212,17 +212,17 @@ var human = {
         },
         "neck2head": {
             "A": "neck",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 45
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -45
@@ -242,17 +242,17 @@ var human = {
         },
         "rAnkle": {
             "A": "rShin",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 60
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -60
@@ -272,17 +272,17 @@ var human = {
         },
         "rElbow": {
             "A": "rArm",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -157.5
@@ -302,17 +302,17 @@ var human = {
         },
         "rHip": {
             "A": "pelvis",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 45
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -135.0
@@ -332,17 +332,17 @@ var human = {
         },
         "rKnee": {
             "A": "rThigh",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 157.5
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 0
@@ -362,17 +362,17 @@ var human = {
         },
         "rShoulder": {
             "A": "uTorso",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 90
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -179.999
@@ -392,17 +392,17 @@ var human = {
         },
         "rWrist": {
             "A": "rForearm",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 90
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -90
@@ -422,17 +422,17 @@ var human = {
         },
         "uTorso2neck": {
             "A": "uTorso",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 0
@@ -452,17 +452,17 @@ var human = {
         },
         "waist": {
             "A": "pelvis",
-            "ANGLE": [
+            "angle": [
                 0,
                 0,
                 0
             ],
-            "ANGLE_MAX": [
+            "max": [
                 0,
                 0,
                 22.5
             ],
-            "ANGLE_MIN": [
+            "min": [
                 0,
                 0,
                 -22.5

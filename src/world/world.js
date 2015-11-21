@@ -29,6 +29,10 @@ World.prototype.addJoint = function(j, opts) {
         return -1;
     }
 
+    if (opts.render) {
+        this.renderer.addJoint(j);
+    }
+
     this.simulator.addJoint(j);
 
     this.joints[name] = j;
@@ -60,28 +64,33 @@ World.prototype.addEntity = function(e, opts) {
 
 };
 
-World.prototype.go = function() {
+World.prototype.go = function(callback) {
 
     var scope = this;
 
-    var t_total = 0;
-    var t_last = Date.now();
-
+    var last = Date.now();
     function animate() {
 
         requestAnimationFrame(animate);
 
         var now = Date.now();
-        var elapsed = now - t_last;
+        var elapsed = now - last;
+        if (elapsed > 1/30*1000) {
+            for (var time = 0; time < 1/120; time+= 0.0001) {
+                scope.step(callback);
+            }
 
-        if (elapsed > scope.FPS) {
-            t_last = now;
-            scope.step(elapsed);
             scope.render();
+            last = now;
         }
 
-        t_total += elapsed;
     }
+
+    /*
+    for (var i = 0; i < 1000; i++) {
+        animate();
+    }
+    */
 
     requestAnimationFrame(animate);
 

@@ -1,9 +1,15 @@
 
+var utils = require('../utils/utils');
+
 function Simulator(opts) {
 
     this.opts = (opts === undefined) ? {} : opts; 
 
+    this.dt = (this.opts.dt === undefined) ? 0.0001: this.opts.dt;
+    this.FPS = (this.opts.FPS === undefined) ? 1/30 : this.opts.FPS;
+
     this.entities = {};
+    this.joints = {};
 
     this.initialize();
 }
@@ -61,21 +67,9 @@ Simulator.prototype.addJoint = function(j) {
                 false
             );
         } else {
-            /*
-            var pivot = new Ammo.btVector3(jointPosInA[0],jointPosInA[1],jointPosInA[2]); 
-            var q = new Ammo.btQuaternion(0, 0, 0, 1);
-            q.setRotation(new Ammo.btVector3(j.axis[0], j.axis[1], j.axis[2]), 0);
 
-            var t = new Ammo.btTransform();
-            t.setIdentity();
-            t.setRotation(q);
-            t.setOrigin(pivot);
-
-            joint = new Ammo.btHingeConstraint(
-                this.entities[j.A].body, 
-                t
-            );
-            */
+            // TODO: FIX ME?
+            // THIS DOESNT WORK 
 
             joint = new Ammo.btHingeConstraint(
                 this.entities[j.A].body, 
@@ -83,14 +77,19 @@ Simulator.prototype.addJoint = function(j) {
                 new Ammo.btVector3(j.axis[0], j.axis[1], j.axis[2]),
                 false
             );
-            console.log(joint);
+        }
+
+        if (j.lo !== undefined) {
+            joint.setLimit(j.lo*Math.PI/180, j.hi*Math.PI/180, 0.1, 1.0, .3);
+//            joint.setLimit(-0.1, 0.1, 0.8, .3, .9);
         }
 
     }
 
     this.dynamicsWorld.addConstraint(joint);
 
-//    this.dynamicsWorld.addJoint(
+
+    this.joints[j.name] = {'joint': j, 'jointBullet': joint};
 
 };
 
@@ -133,16 +132,39 @@ Simulator.prototype.addEntity = function(e) {
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
     var body = new Ammo.btRigidBody(rbInfo);
 
-    this.dynamicsWorld.addRigidBody(body);
+    // SET 2D
+    body.setLinearFactor(new Ammo.btVector3(1,1,0));
+    body.setAngularFactor(new Ammo.btVector3(0,0,1));
+
+    var nothing = 0;
+    var human = 1 << 0;
+    var ground = 1 << 1;
+    if (e.name === 'ground') {
+        this.dynamicsWorld.addRigidBody(body, ground, human);
+    } else {
+        this.dynamicsWorld.addRigidBody(body, human, ground);
+    }
 
     this.entities[e.name] = {'entity': e, 'body': body};
 
 };
 
-Simulator.prototype.step = function(dt) {
+Simulator.prototype.step = function(callback) {
     var trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
 
-    this.dynamicsWorld.stepSimulation(dt/1000, 10);
+    for (var name in this.joints) {
+        var j = this.joints[name].joint;
+        var A = this.entities[j.A].body;
+        var B = this.entities[j.B].body;
+
+        var T = j.getLimitedTorque();
+        A.applyTorque(new Ammo.btVector3(0,0,T));
+        B.applyTorque(new Ammo.btVector3(0,0,-T));
+
+        j.resetTorque();
+    }
+
+    this.dynamicsWorld.stepSimulation(this.dt, 1, this.dt);
 
     for (var name in this.entities) {
         var e = this.entities[name];
@@ -150,13 +172,36 @@ Simulator.prototype.step = function(dt) {
         var entity = e.entity;
         if (body.getMotionState()) {
             body.getMotionState().getWorldTransform(trans);
-            var pos = [trans.getOrigin().x().toFixed(2), trans.getOrigin().y().toFixed(2), trans.getOrigin().z().toFixed(2)];
+            var pos = [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()];
 
-            var rot = trans.getRotation();
+            var rot = trans.getRotation().normalized();
             entity.setPosition(pos);
             entity.setRotation([rot.x(), rot.y(), rot.z(), rot.w()]);
         }
     };
+    for (var name in this.joints) {
+        var j = this.joints[name];
+        var jointEntity = j.joint;
+        var jointBullet = j.jointBullet;
+        if (jointEntity.getType() === 'HINGE') {
+            jointEntity.setAngle(jointBullet.getHingeAngle(), this.dt);
+        }
+            var tform = jointBullet.getFrameOffsetA();
+
+            var body = jointBullet.getRigidBodyA();
+            body.getMotionState().getWorldTransform(trans);
+
+            var pos = [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()];
+
+            var jointVec = [tform.getOrigin().x(), tform.getOrigin().y(), tform.getOrigin().z()];
+
+            var axis = trans.getRotation().normalized();
+            var vec = utils.rotateVector(jointVec, utils.RFromQuaternion([axis.x(), axis.y(), axis.z(), axis.w()]));
+
+            jointEntity.setPosition([pos[0] + vec[0], pos[1] + vec[1], pos[2] + vec[2]]);
+
+    };
+    callback();
 };
 
 module.exports = Simulator;
