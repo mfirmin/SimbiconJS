@@ -36,6 +36,10 @@ Entity.prototype.getPosition = function() {
 Entity.prototype.getRotation = function() {
     return this.rotation;
 };
+
+Entity.prototype.getAngle = function() {
+
+};
 Entity.prototype.getAngularVelocity = function() {
     throw ' IMPLEMENT ME';
     return ;

@@ -67,13 +67,16 @@ VPDController.prototype.constructor = VPDController;
 
 VPDController.prototype.evaluate = function() {
 
-    var currentAngle = Math.acos(this.part.getRotation()[3])*2;
+//    var currentAngle = Math.acos(this.part.getRotation()[3])*2;
+    var rot = this.part.getRotation();
+    var currentAngle = Math.atan2(2*(rot[3]*rot[2] + rot[0]*rot[1]), 1 - 2*(rot[1]*rot[1]+rot[2]*rot[2]));
 
     if (this.lastAngle === undefined) {
        this.lastAngle = currentAngle; 
     } 
 
     var currentAngularVelocity = (currentAngle - this.lastAngle)*10000;
+
 
     var goal = -this.goal;
 
@@ -253,6 +256,10 @@ Entity.prototype.getPosition = function() {
 Entity.prototype.getRotation = function() {
     return this.rotation;
 };
+
+Entity.prototype.getAngle = function() {
+
+};
 Entity.prototype.getAngularVelocity = function() {
     throw ' IMPLEMENT ME';
     return ;
@@ -389,7 +396,7 @@ function Hinge(name, entityNames, pos, axis, limits, angle, angularVelocity, tor
     this.lo = limits.lo;
     this.hi = limits.hi;
 
-    this.torqueLimit = (torqueLimit  === undefined) ? 200 : torqueLimit;
+    this.torqueLimit = (torqueLimit  === undefined) ? 370 : torqueLimit;
 
 }
 
@@ -423,7 +430,7 @@ Hinge.prototype.setAngle = function(ang, dt) {
     this.angle = ang;
     if (dt !== undefined) {
         this.angularVelocityPrev = this.angularVelocity;
-        this.angularVelocity = (this.angle - angleLast)/dt;
+        this.angularVelocity = (this.angle - angleLast)*10000;
         if (this.name === 'rShoulder') {
             //console.log('-shoulder angle,vel (set)-');
 //            console.log(ang);
@@ -433,9 +440,9 @@ Hinge.prototype.setAngle = function(ang, dt) {
 };
 
 Hinge.prototype.getAngularVelocity = function() {
-    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
+//    return (this.angularVelocityPrev + this.angularVelocity)/2.; // average angVel over 2 timesteps.
 //    return 0;
-//    return this.angularVelocity;
+    return this.angularVelocity;
 };
 
 Hinge.prototype.setAngularVelocity = function(angVel) {
@@ -1781,7 +1788,7 @@ Simulator.prototype.step = function(callback) {
             body.getMotionState().getWorldTransform(trans);
             var pos = [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()];
 
-            var rot = trans.getRotation();
+            var rot = trans.getRotation().normalized();
             entity.setPosition(pos);
             entity.setRotation([rot.x(), rot.y(), rot.z(), rot.w()]);
         }
@@ -1939,6 +1946,12 @@ World.prototype.go = function(callback) {
         }
 
     }
+
+    /*
+    for (var i = 0; i < 1000; i++) {
+        animate();
+    }
+    */
 
     requestAnimationFrame(animate);
 
@@ -11246,7 +11259,7 @@ $(document).ready(function() {
     var cdo   = -2.2;
     var cve   = -.2;
     var cvo   = 0;
-    var tor   = 0.1;
+    var tor   = 0.;
     var swhe  = -.4;
     var swho  = .7;
     var swke  =  1.1;
@@ -11260,10 +11273,10 @@ $(document).ready(function() {
     }
 
     var rHip_uTorsoVPD = new VPDController(world.joints['rHip'], world.entities['uTorso'], 0, {kp: 300, kd: 30});
-    var lHip_lThighVPD = new VPDController(world.joints['lHip'], world.entities['lThigh'], 0, {kp: 300, kd: 30});
+    var lHip_lThighVPD = new VPDController(world.joints['lHip'], world.entities['lThigh'], 0, {kp: -300, kd: -30});
 
     var lHip_uTorsoVPD = new VPDController(world.joints['lHip'], world.entities['uTorso'], 0, {kp: 300, kd: 30});
-    var rHip_rThighVPD = new VPDController(world.joints['rHip'], world.entities['rThigh'], 0, {kp: 300, kd: 30});
+    var rHip_rThighVPD = new VPDController(world.joints['rHip'], world.entities['rThigh'], 0, {kp: -300, kd: -30});
 
     var lHip = world.joints['lHip'];
     var rHip = world.joints['rHip'];
@@ -11296,10 +11309,9 @@ $(document).ready(function() {
     world.go(function() {
 
             var com = getCOM();
-            var com_vel = [(com[0]-com_last[0])*10000, (com[1]-com_last[1])*10000, (com[2]-com_last[2])*10000][0]; 
+            var com_vel = (com[0]-com_last[0])*10000;
 
             com_last = [com[0], com[1], com[2]];
-
 
             comObj.position.x = com[0];
             comObj.position.y = com[1];
@@ -11317,16 +11329,15 @@ $(document).ready(function() {
 
                 var optimizer = (cde*d + cve*com_vel);
 
-
                 lHip_uTorsoVPD.goal = tor;
                 rHip_rThighVPD.goal = (swhe + optimizer);
 
                 var lh_ut_torque = lHip_uTorsoVPD.evaluate();
-                lHip.addTorque(-lh_ut_torque);
+                lHip.addTorque(+lh_ut_torque);
 
                 var rh_rt_torque = rHip_rThighVPD.evaluate();
-                rHip.addTorque(-rh_rt_torque);
-                lHip.addTorque(rh_rt_torque);
+                rHip.addTorque(+rh_rt_torque);
+                lHip.addTorque(-rh_rt_torque);
 
 
                 controllers['neck2head'].goal = 0;
@@ -11389,11 +11400,11 @@ $(document).ready(function() {
                 rHip_rThighVPD.goal = (swho + optimizer);
 
                 var lh_ut_torque = lHip_uTorsoVPD.evaluate();
-                lHip.addTorque(-lh_ut_torque);
+                lHip.addTorque(+lh_ut_torque);
 
                 var rh_rt_torque = rHip_rThighVPD.evaluate();
-                rHip.addTorque(-rh_rt_torque);
-                lHip.addTorque(rh_rt_torque);
+                rHip.addTorque(+rh_rt_torque);
+                lHip.addTorque(-rh_rt_torque);
 
                 var test = new Ammo.ConcreteContactResultCallback();
                 test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {
@@ -11405,8 +11416,6 @@ $(document).ready(function() {
 
             } else if (phase === 2) {
                 var d = com[0] - world.joints['lAnkle'].getPosition()[0];
-
-                var v = 0; // COM VELOCITY
 
                 var optimizer = cde*d + cve*com_vel;
 
@@ -11421,11 +11430,11 @@ $(document).ready(function() {
                 lHip_lThighVPD.goal = (swhe + optimizer);
 
                 var rh_ut_torque = rHip_uTorsoVPD.evaluate();
-                rHip.addTorque(-rh_ut_torque);
+                rHip.addTorque(+rh_ut_torque);
 
                 var lh_lt_torque = lHip_lThighVPD.evaluate();
-                lHip.addTorque(-lh_lt_torque);
-                rHip.addTorque(lh_lt_torque);
+                lHip.addTorque(+lh_lt_torque);
+                rHip.addTorque(-lh_lt_torque);
 
                 if (t > dt) {
                     t = 0;
@@ -11447,11 +11456,11 @@ $(document).ready(function() {
                 lHip_lThighVPD.goal = (swho + optimizer);
 
                 var rh_ut_torque = rHip_uTorsoVPD.evaluate();
-                rHip.addTorque(-rh_ut_torque);
+                rHip.addTorque(+rh_ut_torque);
 
                 var lh_lt_torque = lHip_lThighVPD.evaluate();
-                lHip.addTorque(-lh_lt_torque);
-                rHip.addTorque(lh_lt_torque);
+                lHip.addTorque(+lh_lt_torque);
+                rHip.addTorque(-lh_lt_torque);
 
                 var test = new Ammo.ConcreteContactResultCallback();
                 test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {

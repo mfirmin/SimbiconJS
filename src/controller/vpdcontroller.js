@@ -22,7 +22,9 @@ VPDController.prototype.constructor = VPDController;
 
 VPDController.prototype.evaluate = function() {
 
-    var currentAngle = Math.acos(this.part.getRotation()[3])*2;
+//    var currentAngle = Math.acos(this.part.getRotation()[3])*2;
+    var rot = this.part.getRotation();
+    var currentAngle = Math.atan2(2*(rot[3]*rot[2] + rot[0]*rot[1]), 1 - 2*(rot[1]*rot[1]+rot[2]*rot[2]));
 
     if (this.lastAngle === undefined) {
        this.lastAngle = currentAngle; 
@@ -33,15 +35,6 @@ VPDController.prototype.evaluate = function() {
     var goal = -this.goal;
 
     var ret = this.kp*(goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
-
-    if (this.part.name === 'uTorso') {
-        /*
-        console.log('-uTorso-');
-        console.log(ret);
-        console.log(currentAngle);
-        console.log(currentAngularVelocity);
-        */
-    }
 
     this.lastAngle = currentAngle;
 

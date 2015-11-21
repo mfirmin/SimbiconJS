@@ -174,7 +174,7 @@ Simulator.prototype.step = function(callback) {
             body.getMotionState().getWorldTransform(trans);
             var pos = [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()];
 
-            var rot = trans.getRotation();
+            var rot = trans.getRotation().normalized();
             entity.setPosition(pos);
             entity.setRotation([rot.x(), rot.y(), rot.z(), rot.w()]);
         }

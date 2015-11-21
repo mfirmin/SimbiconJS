@@ -86,6 +86,12 @@ World.prototype.go = function(callback) {
 
     }
 
+    /*
+    for (var i = 0; i < 1000; i++) {
+        animate();
+    }
+    */
+
     requestAnimationFrame(animate);
 
 };
