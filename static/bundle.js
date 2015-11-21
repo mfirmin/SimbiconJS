@@ -11189,7 +11189,7 @@ $(document).ready(function() {
     var renderer  = new Renderer();
 
     var world = new World(renderer, simulator, {FPS: FPS});
-    var ground = new Box('ground', [10,1,1], {mass: 0, color: [0,0,255]});
+    var ground = new Box('ground', [100,1,1], {mass: 0, color: [0,0,255]});
     ground.setPosition([0,-.5,0]);
     world.addEntity(ground);
 
