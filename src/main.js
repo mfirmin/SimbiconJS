@@ -65,7 +65,7 @@ $(document).ready(function() {
             default:
                 throw "Unknown Joint type: " + jInfo.type;
         }
-        world.addJoint(joint, {render: true});
+        world.addJoint(joint, {render: false});
     }
 
 
@@ -100,9 +100,9 @@ $(document).ready(function() {
 
     var COM = { color: [255,0,0], position: [0,1,0], getRadius: function() { return .06; }};
 
-    var comObj = world.renderer.addSphere(COM);
-    comObj.position.y = 1;
-    world.renderer.scene.add(comObj);
+//    var comObj = world.renderer.addSphere(COM);
+ //   comObj.position.y = 1;
+  //  world.renderer.scene.add(comObj);
 
     function getCOM() {
         var massTot = 0;
@@ -129,9 +129,11 @@ $(document).ready(function() {
 
             com_last = [com[0], com[1], com[2]];
 
+            /*
             comObj.position.x = com[0];
             comObj.position.y = com[1];
             comObj.position.z = com[2];
+            */
 
 
             t += 0.0001;
