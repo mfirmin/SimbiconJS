@@ -25,15 +25,6 @@ PDController.prototype.evaluate = function() {
 
     var ret = this.kp*(this.goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
 
-    if (this.joint.name === 'rShoulder') {
-        /*
-        console.log('-Shoulder Goal,angle,vel-');
-        console.log(this.goal);
-        console.log(currentAngle);
-        console.log(currentAngularVelocity);
-        */
-    }
-
     return ret;
 
 };
@@ -77,19 +68,9 @@ VPDController.prototype.evaluate = function() {
 
     var currentAngularVelocity = (currentAngle - this.lastAngle)*10000;
 
-
     var goal = -this.goal;
 
     var ret = this.kp*(goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
-
-    if (this.part.name === 'uTorso') {
-        /*
-        console.log('-uTorso-');
-        console.log(ret);
-        console.log(currentAngle);
-        console.log(currentAngularVelocity);
-        */
-    }
 
     this.lastAngle = currentAngle;
 
@@ -431,11 +412,6 @@ Hinge.prototype.setAngle = function(ang, dt) {
     if (dt !== undefined) {
         this.angularVelocityPrev = this.angularVelocity;
         this.angularVelocity = (this.angle - angleLast)*10000;
-        if (this.name === 'rShoulder') {
-            //console.log('-shoulder angle,vel (set)-');
-//            console.log(ang);
-            //console.log(this.angularVelocity);
-        }
     }
 };
 
@@ -11385,7 +11361,6 @@ $(document).ready(function() {
                 if (t > dt) {
                     t = 0;
                     phase = 1;
-                    console.log('1');
                 }
             } else if (phase === 1) {
 
@@ -11410,7 +11385,6 @@ $(document).ready(function() {
                 test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {
                     t= 0;
                     phase = 2;
-                    console.log('2');
                 }
                 world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['rFoot'].body, world.simulator.entities['ground'].body, test);
 
@@ -11439,7 +11413,6 @@ $(document).ready(function() {
                 if (t > dt) {
                     t = 0;
                     phase = 3;
-                    console.log('3');
                 }
             } else if (phase === 3) {
 
@@ -11466,7 +11439,6 @@ $(document).ready(function() {
                 test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {
                     t = 0;
                     phase = 0;
-                    console.log('0');
                 }
                 world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['lFoot'].body, world.simulator.entities['ground'].body, test);
             }
@@ -11474,16 +11446,8 @@ $(document).ready(function() {
             for (var name in controllers) {
                 if (name === 'lHip') {continue; }
                 if (name === 'rHip') {continue; }
-                    var torque = controllers[name].evaluate();
-                    controllers[name].joint.addTorque(torque);
-
-                if (name === 'rShoulder') {
-                    
-                    /*
-                    console.log('-torque (applied)-');
-                    console.log(torque);
-                    */
-                }
+                var torque = controllers[name].evaluate();
+                controllers[name].joint.addTorque(torque);
             }
         }
     );
