@@ -149,8 +149,10 @@ Simulator.prototype.addEntity = function(e) {
 
 };
 
+var trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
+var Tpos = new Ammo.btVector3(0,0,0);
+var Tneg = new Ammo.btVector3(0,0,0);
 Simulator.prototype.step = function(callback) {
-    var trans = new Ammo.btTransform(); // taking this out of the loop below us reduces the leaking
 
     for (var name in this.joints) {
         var j = this.joints[name].joint;
@@ -158,8 +160,12 @@ Simulator.prototype.step = function(callback) {
         var B = this.entities[j.B].body;
 
         var T = j.getLimitedTorque();
-        A.applyTorque(new Ammo.btVector3(0,0,T));
-        B.applyTorque(new Ammo.btVector3(0,0,-T));
+
+        Tpos.setZ(T);
+        Tneg.setZ(-T);
+        
+        A.applyTorque(Tpos);
+        B.applyTorque(Tneg);
 
         j.resetTorque();
     }
