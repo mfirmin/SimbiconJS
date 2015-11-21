@@ -1907,7 +1907,7 @@ World.prototype.addEntity = function(e, opts) {
 
 };
 
-World.prototype.go = function(callback) {
+World.prototype.go = function(simulationCallback, renderCallback) {
 
     var scope = this;
 
@@ -1920,9 +1920,10 @@ World.prototype.go = function(callback) {
         var elapsed = now - last;
         if (elapsed > 1/30*1000) {
             for (var time = 0; time < 1/60; time+= 0.0001) {
-                scope.step(callback);
+                scope.step(simulationCallback);
             }
 
+            renderCallback();
             scope.render();
             last = now;
         }
@@ -11424,8 +11425,6 @@ $(document).ready(function() {
 
                 var d = com[0] - world.joints['lAnkle'].getPosition()[0];
 
-                var v = 0; // COM VELOCITY
-
                 var optimizer = cdo*d + cvo*com_vel;
 
                 controllers['lKnee'].goal = swko;
@@ -11455,6 +11454,10 @@ $(document).ready(function() {
                 var torque = controllers[name].evaluate();
                 controllers[name].joint.addTorque(torque);
             }
+        },
+        function() {
+            var com = getCOM();
+            world.renderer.camera.position.x = com[0];
         }
     );
 

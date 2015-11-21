@@ -64,7 +64,7 @@ World.prototype.addEntity = function(e, opts) {
 
 };
 
-World.prototype.go = function(callback) {
+World.prototype.go = function(simulationCallback, renderCallback) {
 
     var scope = this;
 
@@ -77,9 +77,10 @@ World.prototype.go = function(callback) {
         var elapsed = now - last;
         if (elapsed > 1/30*1000) {
             for (var time = 0; time < 1/60; time+= 0.0001) {
-                scope.step(callback);
+                scope.step(simulationCallback);
             }
 
+            renderCallback();
             scope.render();
             last = now;
         }
