@@ -16,7 +16,7 @@ var VPDController = require('./controller/vpdcontroller');
 var FPS = 1000/30;
 
 
-//$(document).ready(function() {
+window.initialize = function() {
 
     var simulator = new Simulator();
     var renderer  = new Renderer();
@@ -24,7 +24,7 @@ var FPS = 1000/30;
     var world = new World(renderer, simulator, {FPS: FPS});
     var ground = new Box('ground', [100,1,1], {mass: 0, color: [0,0,255]});
     ground.setPosition([0,-.5,0]);
-    world.addEntity(ground);
+    world.addEntity(ground, {shader: {fragmentShader: 'ground_fragShader', vertexShader: 'ground_vertShader'}});
 
     // MAKE HUMAN!
 
@@ -299,4 +299,4 @@ window.renderCallback = function() {
 
 window.world = world;
 
-//});
+};

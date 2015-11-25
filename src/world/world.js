@@ -53,7 +53,7 @@ World.prototype.addEntity = function(e, opts) {
     }
 
     if (opts.render) {
-        this.renderer.addEntity(e);
+        this.renderer.addEntity(e, opts);
     }
 
     if (opts.simulate) {
@@ -84,7 +84,6 @@ World.prototype.go = function(simulationCallback, renderCallback) {
             scope.render();
             last = now;
         }
-
     }
 
     requestAnimationFrame(animate);

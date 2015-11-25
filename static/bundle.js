@@ -1542,7 +1542,9 @@ Renderer.prototype.addSphere = function(e) {
 
 };
 
-Renderer.prototype.addBox = function(e) {
+Renderer.prototype.addBox = function(e, options) {
+
+    options = (options === undefined) ? {} : options;
 
     var c = e.color;
     var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
@@ -1554,7 +1556,18 @@ Renderer.prototype.addBox = function(e) {
     var sides = e.getSides();
     var geo = new THREE.BoxGeometry(sides[0], sides[1], sides[2]);
 
-    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+    var mat;
+    if (options.shader === undefined) {
+        mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+    } else {
+        console.log(options.shader.vertexShader);
+        console.log(document.getElementById(options.shader.fragmentShader));
+        mat = new THREE.ShaderMaterial({
+            vertexShader: document.getElementById(options.shader.vertexShader).textContent,
+            fragmentShader: document.getElementById(options.shader.fragmentShader).textContent,
+        });
+    }
+
     var mesh = new THREE.Mesh( geo , mat );
 
     obj3.add(mesh);
@@ -1572,7 +1585,7 @@ Renderer.prototype.addJoint = function(j) {
     this.joints[j.name] = {'object': obj, 'joint': j};
 };
 
-Renderer.prototype.addEntity = function(e) {
+Renderer.prototype.addEntity = function(e, options) {
     
     var name = e.name;
     if (name in this.entities) {
@@ -1587,7 +1600,7 @@ Renderer.prototype.addEntity = function(e) {
             obj = this.addSphere(e);
             break;
         case 'BOX':
-            obj = this.addBox(e);
+            obj = this.addBox(e, options);
             break;
         case 'CAPSULE':
             obj = this.addCapsule(e);
@@ -1916,7 +1929,7 @@ World.prototype.addEntity = function(e, opts) {
     }
 
     if (opts.render) {
-        this.renderer.addEntity(e);
+        this.renderer.addEntity(e, opts);
     }
 
     if (opts.simulate) {
@@ -1947,7 +1960,6 @@ World.prototype.go = function(simulationCallback, renderCallback) {
             scope.render();
             last = now;
         }
-
     }
 
     requestAnimationFrame(animate);
@@ -11197,7 +11209,7 @@ var VPDController = require('./controller/vpdcontroller');
 var FPS = 1000/30;
 
 
-//$(document).ready(function() {
+window.initialize = function() {
 
     var simulator = new Simulator();
     var renderer  = new Renderer();
@@ -11205,7 +11217,7 @@ var FPS = 1000/30;
     var world = new World(renderer, simulator, {FPS: FPS});
     var ground = new Box('ground', [100,1,1], {mass: 0, color: [0,0,255]});
     ground.setPosition([0,-.5,0]);
-    world.addEntity(ground);
+    world.addEntity(ground, {shader: {fragmentShader: 'ground_fragShader', vertexShader: 'ground_vertShader'}});
 
     // MAKE HUMAN!
 
@@ -11480,6 +11492,6 @@ window.renderCallback = function() {
 
 window.world = world;
 
-//});
+};
 
 },{"./controller/pdcontroller":1,"./controller/vpdcontroller":2,"./entity/box":3,"./entity/capsule":4,"./entity/cylinder":5,"./entity/sphere":8,"./joints/ball":9,"./joints/hinge":10,"./renderer/renderer":13,"./simulator/simulator":14,"./world/world":16,"jquery":17}]},{},[18]);
