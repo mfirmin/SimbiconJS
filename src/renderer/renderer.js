@@ -125,7 +125,8 @@ Renderer.prototype.updateEntities = function() {
     }
 };
 
-Renderer.prototype.addCylinder = function(e) {
+Renderer.prototype.addCylinder = function(e, options) {
+    options = (options === undefined) ? {} : options;
     var c = e.color;
     var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
 //    var cstring = 'rgb(255,0,0)';
@@ -133,47 +134,72 @@ Renderer.prototype.addCylinder = function(e) {
 
     var cylinder = new THREE.Object3D();
 
-    var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 32, 4, false);
-
     var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+    if (options.mesh === undefined) {
+        var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 32, 4, false);
+        var cyl_mesh = new THREE.Mesh( cyl_geo , mat );
 
-    var cyl_mesh = new THREE.Mesh( cyl_geo , mat );
+        cylinder.add(cyl_mesh);
+    } else {
+        var geo = new THREE.Geometry();
+        for (var i = 0; i < options.mesh.vertices.length; i++) {
+            geo.vertices.push(new THREE.Vector3(options.mesh.vertices[i][0], options.mesh.vertices[i][1], options.mesh.vertices[i][2]));
+        }
+        for (var i = 0; i < options.mesh.faces.length; i++) {
+            geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
+        }
+        var mesh = new THREE.Mesh( geo , mat );
+        cylinder.add(mesh);
+    }
 
-    cylinder.add(cyl_mesh);
+
 
     return cylinder;
 
 };
 
-Renderer.prototype.addCapsule = function(e) {
+Renderer.prototype.addCapsule = function(e, options) {
+    options = (options === undefined) ? {} : options;
     var c = e.color;
     var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
 //    var cstring = 'rgb(255,0,0)';
     var color = new THREE.Color(cstring);
 
     var capsule = new THREE.Object3D();
-
-    var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 32, 4, true);
-
-    var sph_geo= new THREE.SphereGeometry(e.getRadius(), 32, 32);
     var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+    if (options.mesh === undefined) {
+        var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 32, 4, true);
+        var sph_geo= new THREE.SphereGeometry(e.getRadius(), 32, 32);
+        var cyl_mesh = new THREE.Mesh( cyl_geo , mat );
+        var top_mesh = new THREE.Mesh( sph_geo , mat );
+        var btm_mesh = new THREE.Mesh( sph_geo , mat );
+        top_mesh.position.y = e.getHeight()/2.;
+        btm_mesh.position.y = -e.getHeight()/2.;
 
-    var cyl_mesh = new THREE.Mesh( cyl_geo , mat );
-    var top_mesh = new THREE.Mesh( sph_geo , mat );
-    var btm_mesh = new THREE.Mesh( sph_geo , mat );
+        capsule.add(cyl_mesh);
+        capsule.add(top_mesh);
+        capsule.add(btm_mesh);
+    } else {
+        var geo = new THREE.Geometry();
+        for (var i = 0; i < options.mesh.vertices.length; i++) {
+            geo.vertices.push(new THREE.Vector3(options.mesh.vertices[i][0], options.mesh.vertices[i][1], options.mesh.vertices[i][2]));
+        }
+        for (var i = 0; i < options.mesh.faces.length; i++) {
+            geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
+        }
+        var mesh = new THREE.Mesh( geo , mat );
+        capsule.add(mesh);
+    }
 
-    top_mesh.position.y = e.getHeight()/2.;
-    btm_mesh.position.y = -e.getHeight()/2.;
 
-    capsule.add(cyl_mesh);
-    capsule.add(top_mesh);
-    capsule.add(btm_mesh);
 
     return capsule;
 
 };
 
-Renderer.prototype.addSphere = function(e) {
+Renderer.prototype.addSphere = function(e, options) {
+
+    options = (options === undefined) ? {} : options;
 
     var c = e.color;
     var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
@@ -182,7 +208,17 @@ Renderer.prototype.addSphere = function(e) {
 
     var obj3 = new THREE.Object3D();
 
-    var geo = new THREE.SphereGeometry(e.getRadius(), 32, 32);
+    if (options.mesh === undefined) {
+        var geo = new THREE.SphereGeometry(e.getRadius(), 32, 32);
+    } else {
+        var geo = new THREE.Geometry();
+        for (var i = 0; i < options.mesh.vertices.length; i++) {
+            geo.vertices.push(new THREE.Vector3(options.mesh.vertices[i][0], options.mesh.vertices[i][1], options.mesh.vertices[i][2]));
+        }
+        for (var i = 0; i < options.mesh.faces.length; i++) {
+            geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
+        }
+    }
 
     var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
     var mesh = new THREE.Mesh( geo , mat );
@@ -205,14 +241,22 @@ Renderer.prototype.addBox = function(e, options) {
     var obj3 = new THREE.Object3D();
 
     var sides = e.getSides();
-    var geo = new THREE.BoxGeometry(sides[0], sides[1], sides[2]);
+    if (options.mesh === undefined) {
+        var geo = new THREE.BoxGeometry(sides[0], sides[1], sides[2]);
+    } else {
+        var geo = new THREE.Geometry();
+        for (var i = 0; i < options.mesh.vertices.length; i++) {
+            geo.vertices.push(new THREE.Vector3(options.mesh.vertices[i][0], options.mesh.vertices[i][1], options.mesh.vertices[i][2]));
+        }
+        for (var i = 0; i < options.mesh.faces.length; i++) {
+            geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
+        }
+    }
 
     var mat;
     if (options.shader === undefined) {
         mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
     } else {
-        console.log(options.shader.vertexShader);
-        console.log(document.getElementById(options.shader.fragmentShader));
         mat = new THREE.ShaderMaterial({
             vertexShader: document.getElementById(options.shader.vertexShader).textContent,
             fragmentShader: document.getElementById(options.shader.fragmentShader).textContent,
@@ -248,16 +292,16 @@ Renderer.prototype.addEntity = function(e, options) {
 
     switch (e.getType()) {
         case 'SPHERE':
-            obj = this.addSphere(e);
+            obj = this.addSphere(e, options);
             break;
         case 'BOX':
             obj = this.addBox(e, options);
             break;
         case 'CAPSULE':
-            obj = this.addCapsule(e);
+            obj = this.addCapsule(e, options);
             break;
         case 'CYLINDER':
-            obj = this.addCylinder(e);
+            obj = this.addCylinder(e, options);
             break;
         default:
             break;

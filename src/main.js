@@ -15,6 +15,7 @@ var VPDController = require('./controller/vpdcontroller');
 
 var FPS = 1000/30;
 
+console.log(mesh);
 
 window.initialize = function() {
 
@@ -37,7 +38,7 @@ window.initialize = function() {
                 entity = new Sphere(e, eInfo.radius, { "mass": eInfo.mass });
                 break;
             case "CAPSULE": 
-                entity = new Capsule(e, (eInfo.radiusTop + eInfo.radiusBottom)/2, eInfo.height, {"mass": eInfo.mass});
+                entity = new Capsule(e, (eInfo.radiusTop + eInfo.radiusBottom)/2.0, eInfo.height, {"mass": eInfo.mass});
                 break;
             case "BOX":
                 entity = new Box(e, eInfo.sides, { "mass": eInfo.mass });
@@ -46,7 +47,7 @@ window.initialize = function() {
                 throw "Unknown Entity type: " + eInfo.type;
         }
         entity.setPosition(eInfo.position);
-        world.addEntity(entity);
+        world.addEntity(entity, {"mesh": {"faces": mesh.objects[e], "vertices": mesh.vertices}});
     }
 
     for (var j in human.joints) {
