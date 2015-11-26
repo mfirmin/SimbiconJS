@@ -62,7 +62,9 @@ title: SimbiconJS
     <body>
         <h1>SimbiconJS</h1>
         <div id='main'>
-            <div id='simbicon'></div>
+            <div id='simbicon'>
+                <div id='simTime'>Simulation Time (% real time): <div id='simRate' style="display: inline-block">0</div></div>
+            </div>
             <div id='controlpanel'>
                 <button id='walk'>Walk</button> <br>
                 <button id='fwalk'>Fast Walk</button> 
@@ -72,7 +74,7 @@ title: SimbiconJS
             varying vec4 vPosition;
             void main() {
                 float color = mod(vPosition.x/4.,1.0);
-                gl_FragColor = mix(vec4(0.3,0.3,0.3, 1.0), vec4(.5,.5,.5,1.0), step(0.5, color));
+                gl_FragColor = mix(vec4(0.7,0.7,0.7, 1.0), vec4(.5,.5,.5,1.0), step(0.5, color));
             }
         </script>
         <script id="ground_vertShader" type="x-shader/x-vertex">

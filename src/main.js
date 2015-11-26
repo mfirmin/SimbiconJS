@@ -292,9 +292,10 @@ window.simulationCallback = function() {
         controllers[name].joint.addTorque(torque);
     }
 };
-window.renderCallback = function() {
+window.renderCallback = function(time) {
     var com = getCOM();
     world.renderer.camera.position.x = com[0];
+    $('#simRate').text((time*30.).toFixed(1)); 
 }
 
 window.world = world;

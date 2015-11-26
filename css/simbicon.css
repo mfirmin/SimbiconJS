@@ -21,3 +21,9 @@
     top: 0px;
 }
 
+#simTime {
+    position: absolute;
+    bottom: 5%;
+    left: 5%;
+}
+

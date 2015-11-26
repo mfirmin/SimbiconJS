@@ -1943,22 +1943,25 @@ World.prototype.addEntity = function(e, opts) {
 World.prototype.go = function(simulationCallback, renderCallback) {
 
     var scope = this;
+    var ready = true;
+    var fps = 1000/30;
 
-    var last = Date.now();
     function animate() {
 
         requestAnimationFrame(animate);
 
         var now = Date.now();
-        var elapsed = now - last;
-        if (elapsed > 1/30*1000) {
-            for (var time = 0; time < 1/60; time+= 0.0001) {
+        if (ready) {
+            ready = false;
+            var time = 0;
+            while (Date.now() - now < fps) {
                 scope.step(simulationCallback);
+                time += 0.0001;
             }
 
-            renderCallback();
+            renderCallback(time);
             scope.render();
-            last = now;
+            ready = true;
         }
     }
 
@@ -11485,9 +11488,10 @@ window.simulationCallback = function() {
         controllers[name].joint.addTorque(torque);
     }
 };
-window.renderCallback = function() {
+window.renderCallback = function(time) {
     var com = getCOM();
     world.renderer.camera.position.x = com[0];
+    $('#simRate').text((time*30.).toFixed(1)); 
 }
 
 window.world = world;
