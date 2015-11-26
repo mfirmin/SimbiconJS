@@ -47,7 +47,7 @@ window.initialize = function() {
                 throw "Unknown Entity type: " + eInfo.type;
         }
         entity.setPosition(eInfo.position);
-        world.addEntity(entity, {"mesh": {"faces": mesh.objects[e], "vertices": mesh.vertices}});
+        world.addEntity(entity, {"mesh": {"faces": mesh.objects[e].faces, "vertices": mesh.vertices, "color": mesh.objects[e].color}});
     }
 
     for (var j in human.joints) {

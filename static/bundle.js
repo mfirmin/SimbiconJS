@@ -1476,14 +1476,14 @@ Renderer.prototype.updateEntities = function() {
 
 Renderer.prototype.addCylinder = function(e, options) {
     options = (options === undefined) ? {} : options;
-    var c = e.color;
+    var c = (options.mesh !== undefined && options.mesh.color !== undefined) ? options.mesh.color : e.color;
     var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
 //    var cstring = 'rgb(255,0,0)';
     var color = new THREE.Color(cstring);
 
     var cylinder = new THREE.Object3D();
 
-    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: color, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
     if (options.mesh === undefined) {
         var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 32, 4, false);
         var cyl_mesh = new THREE.Mesh( cyl_geo , mat );
@@ -1497,6 +1497,8 @@ Renderer.prototype.addCylinder = function(e, options) {
         for (var i = 0; i < options.mesh.faces.length; i++) {
             geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
         }
+        geo.computeFaceNormals();
+        geo.computeVertexNormals();
         var mesh = new THREE.Mesh( geo , mat );
         cylinder.add(mesh);
     }
@@ -1509,13 +1511,15 @@ Renderer.prototype.addCylinder = function(e, options) {
 
 Renderer.prototype.addCapsule = function(e, options) {
     options = (options === undefined) ? {} : options;
-    var c = e.color;
+
+    var c = (options.mesh !== undefined && options.mesh.color !== undefined) ? options.mesh.color : e.color;
+
     var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
 //    var cstring = 'rgb(255,0,0)';
     var color = new THREE.Color(cstring);
 
     var capsule = new THREE.Object3D();
-    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: color, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
     if (options.mesh === undefined) {
         var cyl_geo = new THREE.CylinderGeometry(e.getRadius(), e.getRadius(), e.getHeight(), 32, 4, true);
         var sph_geo= new THREE.SphereGeometry(e.getRadius(), 32, 32);
@@ -1536,6 +1540,8 @@ Renderer.prototype.addCapsule = function(e, options) {
         for (var i = 0; i < options.mesh.faces.length; i++) {
             geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
         }
+        geo.computeFaceNormals();
+        geo.computeVertexNormals();
         var mesh = new THREE.Mesh( geo , mat );
         capsule.add(mesh);
     }
@@ -1550,7 +1556,7 @@ Renderer.prototype.addSphere = function(e, options) {
 
     options = (options === undefined) ? {} : options;
 
-    var c = e.color;
+    var c = (options.mesh !== undefined && options.mesh.color !== undefined) ? options.mesh.color : e.color;
     var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
 //    var cstring = 'rgb(255,0,0)';
     var color = new THREE.Color(cstring);
@@ -1567,9 +1573,11 @@ Renderer.prototype.addSphere = function(e, options) {
         for (var i = 0; i < options.mesh.faces.length; i++) {
             geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
         }
+        geo.computeFaceNormals();
+        geo.computeVertexNormals();
     }
 
-    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+    var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: color, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
     var mesh = new THREE.Mesh( geo , mat );
 
     obj3.add(mesh);
@@ -1582,7 +1590,7 @@ Renderer.prototype.addBox = function(e, options) {
 
     options = (options === undefined) ? {} : options;
 
-    var c = e.color;
+    var c = (options.mesh !== undefined && options.mesh.color !== undefined) ? options.mesh.color : e.color;
     var cstring = 'rgb(' + c[0] + ','+ c[1]  + ',' + c[2]  + ')';
 //    var cstring = 'rgb(255,0,0)';
     var color = new THREE.Color(cstring);
@@ -1600,11 +1608,13 @@ Renderer.prototype.addBox = function(e, options) {
         for (var i = 0; i < options.mesh.faces.length; i++) {
             geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
         }
+        geo.computeFaceNormals();
+        geo.computeVertexNormals();
     }
 
     var mat;
     if (options.shader === undefined) {
-        mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: cstring, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
+        mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: color, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
     } else {
         mat = new THREE.ShaderMaterial({
             vertexShader: document.getElementById(options.shader.vertexShader).textContent,
@@ -11287,7 +11297,7 @@ window.initialize = function() {
                 throw "Unknown Entity type: " + eInfo.type;
         }
         entity.setPosition(eInfo.position);
-        world.addEntity(entity, {"mesh": {"faces": mesh.objects[e], "vertices": mesh.vertices}});
+        world.addEntity(entity, {"mesh": {"faces": mesh.objects[e].faces, "vertices": mesh.vertices, "color": mesh.objects[e].color}});
     }
 
     for (var j in human.joints) {
