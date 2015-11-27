@@ -47,7 +47,7 @@ Renderer.prototype.initializeWorld = function() {
 //    this.camera = new THREE.PerspectiveCamera(45, 1, 1, 2000);
     this.scene.add(this.camera);
     this.light = new THREE.PointLight( 0xfffffa, 1, 0 );
-    this.light.position.set(20,20,20);
+    this.light.position.set(0,5,10);
     this.scene.add( this.light );
 
     this.camera.position.x = 0;
