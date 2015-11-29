@@ -11475,14 +11475,14 @@ window.initialize = function() {
     var t = 0;
     var phase = 0;
 
-window.simulationCallback = function() {
+window.simulationCallback = function(dt) {
 
     var com = getCOM();
-    var com_vel = (com[0]-com_last[0])*10000;
+    var com_vel = (com[0]-com_last[0])*(1.0/dt);
 
     com_last = [com[0], com[1], com[2]];
 
-    t += 0.0001;
+    t += dt;
 
     if (phase === 0) {
 
