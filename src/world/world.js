@@ -87,7 +87,7 @@ World.prototype.go = function(opts) {
             var time = 0;
             while (Date.now() - now < fpms) {
                 scope.step();
-                time += this.dt;
+                time += scope.dt;
             }
 
             scope.render(time);
