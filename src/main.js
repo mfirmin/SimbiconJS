@@ -47,7 +47,25 @@ window.initialize = function() {
                 throw "Unknown Entity type: " + eInfo.type;
         }
         entity.setPosition(eInfo.position);
-        world.addEntity(entity, {"mesh": {"faces": mesh.objects[e].faces, "vertices": mesh.vertices, "color": mesh.objects[e].color}});
+        var offset = 0.01;
+        if (e === 'rForearm' || e === 'rArm') {
+            offset += .065;
+        } else if (e === 'rHand') {
+            offset += .08;
+        } else if (e === 'lForearm' || e === 'lArm') {
+            offset += -.065;
+        } else if (e === 'lHand') {
+            offset += -.08;
+        } else if (e === 'rShin') {
+            offset += .04;
+        } else if (e === 'lShin') {
+            offset += .04;
+        } else if (e === 'rThigh') {
+            offset += -.008;
+        } else if (e === 'rFoot' || e === 'lFoot') {
+            offset += .2;
+        }
+        world.addEntity(entity, {"mesh": {"faces": mesh[e].faces, "vertices": mesh[e].vertices, "color": mesh[e].color, "lineOffset": offset}});
     }
 
     for (var j in human.joints) {

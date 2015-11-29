@@ -1491,15 +1491,29 @@ Renderer.prototype.addCylinder = function(e, options) {
         cylinder.add(cyl_mesh);
     } else {
         var geo = new THREE.Geometry();
+        var outline_pts = [];
+        var chuller = new ConvexHullGrahamScan();
         for (var i = 0; i < options.mesh.vertices.length; i++) {
             geo.vertices.push(new THREE.Vector3(options.mesh.vertices[i][0], options.mesh.vertices[i][1], options.mesh.vertices[i][2]));
         }
         for (var i = 0; i < options.mesh.faces.length; i++) {
             geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][0]][0], options.mesh.vertices[options.mesh.faces[i][0]][1]);
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][1]][0], options.mesh.vertices[options.mesh.faces[i][1]][1]);
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][2]][0], options.mesh.vertices[options.mesh.faces[i][2]][1]);
         }
         geo.computeFaceNormals();
         geo.computeVertexNormals();
         var mesh = new THREE.Mesh( geo , mat );
+
+        var hullPoints = chuller.getHull();
+        var lineGeo = new THREE.Geometry();
+        for (var i = 0; i < hullPoints.length; i++) {
+            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, options.mesh.lineOffset));
+        }
+        var lineMat = new THREE.LineBasicMaterial({color: new THREE.Color(0,0,0), linewidth: 1});
+        var line = new THREE.Line(lineGeo, lineMat);
+        cylinder.add(line);
         cylinder.add(mesh);
     }
 
@@ -1534,16 +1548,30 @@ Renderer.prototype.addCapsule = function(e, options) {
         capsule.add(btm_mesh);
     } else {
         var geo = new THREE.Geometry();
+        var chuller = new ConvexHullGrahamScan();
         for (var i = 0; i < options.mesh.vertices.length; i++) {
             geo.vertices.push(new THREE.Vector3(options.mesh.vertices[i][0], options.mesh.vertices[i][1], options.mesh.vertices[i][2]));
         }
         for (var i = 0; i < options.mesh.faces.length; i++) {
             geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][0]][0], options.mesh.vertices[options.mesh.faces[i][0]][1]);
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][1]][0], options.mesh.vertices[options.mesh.faces[i][1]][1]);
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][2]][0], options.mesh.vertices[options.mesh.faces[i][2]][1]);
         }
         geo.computeFaceNormals();
         geo.computeVertexNormals();
         var mesh = new THREE.Mesh( geo , mat );
         capsule.add(mesh);
+
+        var hullPoints = chuller.getHull();
+        var lineGeo = new THREE.Geometry();
+        for (var i = 0; i < hullPoints.length; i++) {
+            //lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, 5));
+            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, options.mesh.lineOffset));
+        }
+        var lineMat = new THREE.LineBasicMaterial({color: new THREE.Color(0,0,0), linewidth: 1});
+        var line = new THREE.Line(lineGeo, lineMat);
+        capsule.add(line);
     }
 
 
@@ -1566,21 +1594,35 @@ Renderer.prototype.addSphere = function(e, options) {
     if (options.mesh === undefined) {
         var geo = new THREE.SphereGeometry(e.getRadius(), 32, 32);
     } else {
+        var chuller = new ConvexHullGrahamScan();
         var geo = new THREE.Geometry();
         for (var i = 0; i < options.mesh.vertices.length; i++) {
             geo.vertices.push(new THREE.Vector3(options.mesh.vertices[i][0], options.mesh.vertices[i][1], options.mesh.vertices[i][2]));
         }
         for (var i = 0; i < options.mesh.faces.length; i++) {
             geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][0]][0], options.mesh.vertices[options.mesh.faces[i][0]][1]);
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][1]][0], options.mesh.vertices[options.mesh.faces[i][1]][1]);
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][2]][0], options.mesh.vertices[options.mesh.faces[i][2]][1]);
         }
         geo.computeFaceNormals();
         geo.computeVertexNormals();
+        var hullPoints = chuller.getHull();
+        var lineGeo = new THREE.Geometry();
+        for (var i = 0; i < hullPoints.length; i++) {
+            //lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, 5));
+            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, options.mesh.lineOffset));
+        }
+        var lineMat = new THREE.LineBasicMaterial({color: new THREE.Color(0,0,0), linewidth: 1});
+        var line = new THREE.Line(lineGeo, lineMat);
+        obj3.add(line);
     }
 
     var mat = new THREE.MeshPhongMaterial( { ambient: 0x030303, color: color, specular: 0x030303, shininess: 10, shading: THREE.SmoothShading} );
     var mesh = new THREE.Mesh( geo , mat );
 
     obj3.add(mesh);
+
 
     return obj3;
 
@@ -1601,15 +1643,28 @@ Renderer.prototype.addBox = function(e, options) {
     if (options.mesh === undefined) {
         var geo = new THREE.BoxGeometry(sides[0], sides[1], sides[2]);
     } else {
+        var chuller = new ConvexHullGrahamScan();
         var geo = new THREE.Geometry();
         for (var i = 0; i < options.mesh.vertices.length; i++) {
             geo.vertices.push(new THREE.Vector3(options.mesh.vertices[i][0], options.mesh.vertices[i][1], options.mesh.vertices[i][2]));
         }
         for (var i = 0; i < options.mesh.faces.length; i++) {
             geo.faces.push(new THREE.Face3(options.mesh.faces[i][0], options.mesh.faces[i][1], options.mesh.faces[i][2]));
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][0]][0], options.mesh.vertices[options.mesh.faces[i][0]][1]);
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][1]][0], options.mesh.vertices[options.mesh.faces[i][1]][1]);
+            chuller.addPoint(options.mesh.vertices[options.mesh.faces[i][2]][0], options.mesh.vertices[options.mesh.faces[i][2]][1]);
         }
         geo.computeFaceNormals();
         geo.computeVertexNormals();
+        var hullPoints = chuller.getHull();
+        var lineGeo = new THREE.Geometry();
+        for (var i = 0; i < hullPoints.length; i++) {
+            //lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, 5));
+            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, options.mesh.lineOffset));
+        }
+        var lineMat = new THREE.LineBasicMaterial({color: new THREE.Color(0,0,0), linewidth: 1});
+        var line = new THREE.Line(lineGeo, lineMat);
+        obj3.add(line);
     }
 
     var mat;
@@ -1625,6 +1680,7 @@ Renderer.prototype.addBox = function(e, options) {
     var mesh = new THREE.Mesh( geo , mat );
 
     obj3.add(mesh);
+    
 
     return obj3;
 
@@ -11297,7 +11353,25 @@ window.initialize = function() {
                 throw "Unknown Entity type: " + eInfo.type;
         }
         entity.setPosition(eInfo.position);
-        world.addEntity(entity, {"mesh": {"faces": mesh.objects[e].faces, "vertices": mesh.vertices, "color": mesh.objects[e].color}});
+        var offset = 0.01;
+        if (e === 'rForearm' || e === 'rArm') {
+            offset += .065;
+        } else if (e === 'rHand') {
+            offset += .08;
+        } else if (e === 'lForearm' || e === 'lArm') {
+            offset += -.065;
+        } else if (e === 'lHand') {
+            offset += -.08;
+        } else if (e === 'rShin') {
+            offset += .04;
+        } else if (e === 'lShin') {
+            offset += .04;
+        } else if (e === 'rThigh') {
+            offset += -.008;
+        } else if (e === 'rFoot' || e === 'lFoot') {
+            offset += .2;
+        }
+        world.addEntity(entity, {"mesh": {"faces": mesh[e].faces, "vertices": mesh[e].vertices, "color": mesh[e].color, "lineOffset": offset}});
     }
 
     for (var j in human.joints) {
