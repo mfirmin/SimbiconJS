@@ -8,7 +8,9 @@ var Sphere   = require('../entity/sphere');
 var Capsule  = require('../entity/capsule');
 var Plane    = require('../entity/plane');
 
-function Renderer() {
+function Renderer(opts) {
+
+    opts = (opts === undefined) ? {} : opts;
 
     this.initializeGL();
     this.initializeWorld();
@@ -16,6 +18,8 @@ function Renderer() {
 
     this.entities = {};
     this.joints = {};
+
+    this.callback = opts.callback;
 }
 
 
@@ -95,8 +99,15 @@ Renderer.prototype.setSize = function() {
 //    this.panel.css({width: w, height: h});
 };
 
-Renderer.prototype.render = function() {
+Renderer.prototype.setCallback = function(fn) {
+    this.callback = fn;
+};
+
+Renderer.prototype.render = function(time) {
     this.updateEntities();
+    if (this.callback !== undefined) {
+        this.callback(time);
+    }
     this.renderer.render(this.scene, this.camera);
 };
 

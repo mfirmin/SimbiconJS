@@ -1,8 +1,6 @@
 var $           = require('jquery');
 
 var World       = require('./world/world');
-var Renderer    = require('./renderer/renderer');
-var Simulator   = require('./simulator/simulator');
 var Sphere      = require('./entity/sphere');
 var Box         = require('./entity/box');
 var Capsule     = require('./entity/capsule');
@@ -13,16 +11,12 @@ var Ball        = require('./joints/ball');
 var PDController = require('./controller/pdcontroller');
 var VPDController = require('./controller/vpdcontroller');
 
-var FPS = 1000/30;
-
-console.log(mesh);
+var FPS = 1/30;
+var dt = 0.0001;
 
 window.initialize = function() {
 
-    var simulator = new Simulator();
-    var renderer  = new Renderer();
-
-    var world = new World(renderer, simulator, {FPS: FPS});
+    var world = new World({FPS: FPS, dt: dt});
     var ground = new Box('ground', [100,1,1], {mass: 0, color: [0,0,255]});
     ground.setPosition([0,-.5,0]);
     world.addEntity(ground, {shader: {fragmentShader: 'ground_fragShader', vertexShader: 'ground_vertShader'}});
@@ -64,7 +58,7 @@ window.initialize = function() {
             offset += -.008;
         } else if (e === 'rFoot' || e === 'lFoot') {
             offset += .2;
-        }
+        } 
         world.addEntity(entity, {"mesh": {"faces": mesh[e].faces, "vertices": mesh[e].vertices, "color": mesh[e].color, "lineOffset": offset}});
     }
 

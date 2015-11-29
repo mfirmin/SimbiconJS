@@ -1357,7 +1357,9 @@ var Sphere   = require('../entity/sphere');
 var Capsule  = require('../entity/capsule');
 var Plane    = require('../entity/plane');
 
-function Renderer() {
+function Renderer(opts) {
+
+    opts = (opts === undefined) ? {} : opts;
 
     this.initializeGL();
     this.initializeWorld();
@@ -1365,6 +1367,8 @@ function Renderer() {
 
     this.entities = {};
     this.joints = {};
+
+    this.callback = opts.callback;
 }
 
 
@@ -1444,8 +1448,15 @@ Renderer.prototype.setSize = function() {
 //    this.panel.css({width: w, height: h});
 };
 
-Renderer.prototype.render = function() {
+Renderer.prototype.setCallback = function(fn) {
+    this.callback = fn;
+};
+
+Renderer.prototype.render = function(time) {
     this.updateEntities();
+    if (this.callback !== undefined) {
+        this.callback(time);
+    }
     this.renderer.render(this.scene, this.camera);
 };
 
@@ -1734,12 +1745,14 @@ module.exports = Renderer;
 
 var utils = require('../utils/utils');
 
-function Simulator(opts) {
+function Simulator(dt, opts) {
 
-    this.opts = (opts === undefined) ? {} : opts; 
 
-    this.dt = (this.opts.dt === undefined) ? 0.0001: this.opts.dt;
-    this.FPS = (this.opts.FPS === undefined) ? 1/30 : this.opts.FPS;
+    this.dt = dt;
+
+    this.opts = (opts === undefined) ? {} : opts;
+
+    this.callback = this.opts.callback;
 
     this.entities = {};
     this.joints = {};
@@ -1768,6 +1781,10 @@ Simulator.prototype.destroy = function() {
     Ammo.destroy(this.overlappingPairCache);
     Ammo.destroy(this.solver);
       //Ammo.destroy(dynamicsWorld); // XXX gives an error for some reason, |getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(bp,m_dispatcher1);| in btCollisionWorld.cpp throws a 'pure virtual' failure
+};
+
+Simulator.prototype.setCallback = function(fn) {
+    this.callback = fn;
 };
 
 Simulator.prototype.addJoint = function(j) {
@@ -1940,7 +1957,9 @@ Simulator.prototype.step = function(callback) {
             jointEntity.setPosition([pos[0] + vec[0], pos[1] + vec[1], pos[2] + vec[2]]);
 
     };
-    callback();
+    if (this.callback !== undefined) {
+        this.callback(this.dt);
+    }
 };
 
 module.exports = Simulator;
@@ -1984,20 +2003,24 @@ utils.rotateVector = function(v, R) {
 module.exports = utils;
 
 },{}],16:[function(require,module,exports){
+var Renderer    = require('../renderer/renderer');
+var Simulator   = require('../simulator/simulator');
 var Box      = require('../entity/box');
 var Cylinder = require('../entity/cylinder');
 var Sphere   = require('../entity/sphere');
 var Capsule  = require('../entity/capsule');
 var Plane    = require('../entity/plane');
 
-function World(renderer, simulator, opts) {
+function World(opts) {
 
     opts = (opts === undefined) ? {} : opts;
 
-    this.renderer = renderer;
-    this.simulator = simulator;
 
-    this.FPS = (opts.FPS === undefined) ? 1000/30. : opts.FPS;
+    this.FPS = (opts.FPS === undefined) ? 1/30. : opts.FPS;
+    this.dt  = (opts.dt === undefined) ? 0.0001 : opts.dt;
+
+    this.renderer = new Renderer();
+    this.simulator = new Simulator(this.dt);
 
     this.entities = {};
     this.joints   = {};
@@ -2050,11 +2073,14 @@ World.prototype.addEntity = function(e, opts) {
 
 };
 
-World.prototype.go = function(simulationCallback, renderCallback) {
+World.prototype.go = function(opts) {
 
     var scope = this;
     var ready = true;
-    var fps = 1000/30;
+    var fpms = this.FPS*1000;
+
+    this.simulator.setCallback(opts.simulationCallback);
+    this.renderer.setCallback(opts.renderCallback);
 
     function animate() {
 
@@ -2064,13 +2090,12 @@ World.prototype.go = function(simulationCallback, renderCallback) {
         if (ready) {
             ready = false;
             var time = 0;
-            while (Date.now() - now < fps) {
-                scope.step(simulationCallback);
-                time += 0.0001;
+            while (Date.now() - now < fpms) {
+                scope.step();
+                time += this.dt;
             }
 
-            renderCallback(time);
-            scope.render();
+            scope.render(time);
             ready = true;
         }
     }
@@ -2079,19 +2104,19 @@ World.prototype.go = function(simulationCallback, renderCallback) {
 
 };
 
-World.prototype.render = function() {
-    this.renderer.render();
+World.prototype.render = function(time) {
+    this.renderer.render(time);
 };
 
-World.prototype.step = function(elapsed) {
+World.prototype.step = function() {
 
-    this.simulator.step(elapsed);
+    this.simulator.step();
 
 };
 
 module.exports = World;
 
-},{"../entity/box":3,"../entity/capsule":4,"../entity/cylinder":5,"../entity/plane":7,"../entity/sphere":8}],17:[function(require,module,exports){
+},{"../entity/box":3,"../entity/capsule":4,"../entity/cylinder":5,"../entity/plane":7,"../entity/sphere":8,"../renderer/renderer":13,"../simulator/simulator":14}],17:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.4
  * http://jquery.com/
@@ -11307,8 +11332,6 @@ return jQuery;
 var $           = require('jquery');
 
 var World       = require('./world/world');
-var Renderer    = require('./renderer/renderer');
-var Simulator   = require('./simulator/simulator');
 var Sphere      = require('./entity/sphere');
 var Box         = require('./entity/box');
 var Capsule     = require('./entity/capsule');
@@ -11319,16 +11342,12 @@ var Ball        = require('./joints/ball');
 var PDController = require('./controller/pdcontroller');
 var VPDController = require('./controller/vpdcontroller');
 
-var FPS = 1000/30;
-
-console.log(mesh);
+var FPS = 1/30;
+var dt = 0.0001;
 
 window.initialize = function() {
 
-    var simulator = new Simulator();
-    var renderer  = new Renderer();
-
-    var world = new World(renderer, simulator, {FPS: FPS});
+    var world = new World({FPS: FPS, dt: dt});
     var ground = new Box('ground', [100,1,1], {mass: 0, color: [0,0,255]});
     ground.setPosition([0,-.5,0]);
     world.addEntity(ground, {shader: {fragmentShader: 'ground_fragShader', vertexShader: 'ground_vertShader'}});
@@ -11370,7 +11389,7 @@ window.initialize = function() {
             offset += -.008;
         } else if (e === 'rFoot' || e === 'lFoot') {
             offset += .2;
-        }
+        } 
         world.addEntity(entity, {"mesh": {"faces": mesh[e].faces, "vertices": mesh[e].vertices, "color": mesh[e].color, "lineOffset": offset}});
     }
 
@@ -11627,4 +11646,4 @@ window.world = world;
 
 };
 
-},{"./controller/pdcontroller":1,"./controller/vpdcontroller":2,"./entity/box":3,"./entity/capsule":4,"./entity/cylinder":5,"./entity/sphere":8,"./joints/ball":9,"./joints/hinge":10,"./renderer/renderer":13,"./simulator/simulator":14,"./world/world":16,"jquery":17}]},{},[18]);
+},{"./controller/pdcontroller":1,"./controller/vpdcontroller":2,"./entity/box":3,"./entity/capsule":4,"./entity/cylinder":5,"./entity/sphere":8,"./joints/ball":9,"./joints/hinge":10,"./world/world":16,"jquery":17}]},{},[18]);

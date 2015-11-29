@@ -1,12 +1,14 @@
 
 var utils = require('../utils/utils');
 
-function Simulator(opts) {
+function Simulator(dt, opts) {
 
-    this.opts = (opts === undefined) ? {} : opts; 
 
-    this.dt = (this.opts.dt === undefined) ? 0.0001: this.opts.dt;
-    this.FPS = (this.opts.FPS === undefined) ? 1/30 : this.opts.FPS;
+    this.dt = dt;
+
+    this.opts = (opts === undefined) ? {} : opts;
+
+    this.callback = this.opts.callback;
 
     this.entities = {};
     this.joints = {};
@@ -35,6 +37,10 @@ Simulator.prototype.destroy = function() {
     Ammo.destroy(this.overlappingPairCache);
     Ammo.destroy(this.solver);
       //Ammo.destroy(dynamicsWorld); // XXX gives an error for some reason, |getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(bp,m_dispatcher1);| in btCollisionWorld.cpp throws a 'pure virtual' failure
+};
+
+Simulator.prototype.setCallback = function(fn) {
+    this.callback = fn;
 };
 
 Simulator.prototype.addJoint = function(j) {
@@ -207,7 +213,9 @@ Simulator.prototype.step = function(callback) {
             jointEntity.setPosition([pos[0] + vec[0], pos[1] + vec[1], pos[2] + vec[2]]);
 
     };
-    callback();
+    if (this.callback !== undefined) {
+        this.callback(this.dt);
+    }
 };
 
 module.exports = Simulator;

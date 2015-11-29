@@ -21,7 +21,7 @@ title: SimbiconJS
                 $('#simbicon').append(world.renderer.panel);
                 world.renderer.setSize();
 
-                world.go(simulationCallback, renderCallback);
+                world.go({simulationCallback:simulationCallback, renderCallback:renderCallback});
 
                 $('#fwalk').click(function() {
                     setSimbiconParameters({

@@ -1,17 +1,21 @@
+var Renderer    = require('../renderer/renderer');
+var Simulator   = require('../simulator/simulator');
 var Box      = require('../entity/box');
 var Cylinder = require('../entity/cylinder');
 var Sphere   = require('../entity/sphere');
 var Capsule  = require('../entity/capsule');
 var Plane    = require('../entity/plane');
 
-function World(renderer, simulator, opts) {
+function World(opts) {
 
     opts = (opts === undefined) ? {} : opts;
 
-    this.renderer = renderer;
-    this.simulator = simulator;
 
-    this.FPS = (opts.FPS === undefined) ? 1000/30. : opts.FPS;
+    this.FPS = (opts.FPS === undefined) ? 1/30. : opts.FPS;
+    this.dt  = (opts.dt === undefined) ? 0.0001 : opts.dt;
+
+    this.renderer = new Renderer();
+    this.simulator = new Simulator(this.dt);
 
     this.entities = {};
     this.joints   = {};
@@ -64,11 +68,14 @@ World.prototype.addEntity = function(e, opts) {
 
 };
 
-World.prototype.go = function(simulationCallback, renderCallback) {
+World.prototype.go = function(opts) {
 
     var scope = this;
     var ready = true;
-    var fps = 1000/30;
+    var fpms = this.FPS*1000;
+
+    this.simulator.setCallback(opts.simulationCallback);
+    this.renderer.setCallback(opts.renderCallback);
 
     function animate() {
 
@@ -78,13 +85,12 @@ World.prototype.go = function(simulationCallback, renderCallback) {
         if (ready) {
             ready = false;
             var time = 0;
-            while (Date.now() - now < fps) {
-                scope.step(simulationCallback);
-                time += 0.0001;
+            while (Date.now() - now < fpms) {
+                scope.step();
+                time += this.dt;
             }
 
-            renderCallback(time);
-            scope.render();
+            scope.render(time);
             ready = true;
         }
     }
@@ -93,13 +99,13 @@ World.prototype.go = function(simulationCallback, renderCallback) {
 
 };
 
-World.prototype.render = function() {
-    this.renderer.render();
+World.prototype.render = function(time) {
+    this.renderer.render(time);
 };
 
-World.prototype.step = function(elapsed) {
+World.prototype.step = function() {
 
-    this.simulator.step(elapsed);
+    this.simulator.step();
 
 };
 
