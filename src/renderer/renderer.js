@@ -171,7 +171,7 @@ Renderer.prototype.addCylinder = function(e, options) {
         var hullPoints = chuller.getHull();
         var lineGeo = new THREE.Geometry();
         for (var i = 0; i < hullPoints.length; i++) {
-            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, options.mesh.lineOffset));
+            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, 0.003 + options.mesh.vertices[0][2]));
         }
         var lineMat = new THREE.LineBasicMaterial({color: new THREE.Color(0,0,0), linewidth: 1});
         var line = new THREE.Line(lineGeo, lineMat);
@@ -229,7 +229,7 @@ Renderer.prototype.addCapsule = function(e, options) {
         var lineGeo = new THREE.Geometry();
         for (var i = 0; i < hullPoints.length; i++) {
             //lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, 5));
-            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, options.mesh.lineOffset));
+            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, 0.003 + options.mesh.vertices[0][2]));
         }
         var lineMat = new THREE.LineBasicMaterial({color: new THREE.Color(0,0,0), linewidth: 1});
         var line = new THREE.Line(lineGeo, lineMat);
@@ -273,7 +273,7 @@ Renderer.prototype.addSphere = function(e, options) {
         var lineGeo = new THREE.Geometry();
         for (var i = 0; i < hullPoints.length; i++) {
             //lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, 5));
-            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, options.mesh.lineOffset));
+            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, 0.003 + options.mesh.vertices[0][2]));
         }
         var lineMat = new THREE.LineBasicMaterial({color: new THREE.Color(0,0,0), linewidth: 1});
         var line = new THREE.Line(lineGeo, lineMat);
@@ -322,7 +322,7 @@ Renderer.prototype.addBox = function(e, options) {
         var lineGeo = new THREE.Geometry();
         for (var i = 0; i < hullPoints.length; i++) {
             //lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, 5));
-            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, options.mesh.lineOffset));
+            lineGeo.vertices.push(new THREE.Vector3(hullPoints[i].x, hullPoints[i].y, 0.003 + options.mesh.vertices[0][2]));
         }
         var lineMat = new THREE.LineBasicMaterial({color: new THREE.Color(0,0,0), linewidth: 1});
         var line = new THREE.Line(lineGeo, lineMat);

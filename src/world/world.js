@@ -69,14 +69,15 @@ World.prototype.addEntity = function(e, opts) {
 
 };
 
-World.prototype.addCharacter = function(character) {
-    console.log(character);
+World.prototype.addCharacter = function(character, opts) {
     for (var e in character.entities) {
-        console.log(e);
-        this.addEntity(character.entities[e]);
+
+        var name = e.slice(e.indexOf('.')+1);
+        var mesh = {"faces": opts.meshOverlay[name].faces, "vertices": opts.meshOverlay[name].vertices, "color": opts.meshOverlay[name].color}
+
+        this.addEntity(character.entities[e], {"mesh": mesh});
     }
     for (var j in character.joints) {
-        console.log(j);
         this.addJoint(character.joints[j]);
     }
 };

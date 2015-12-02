@@ -29,67 +29,8 @@ window.initialize = function() {
 
     humanoid.setFromJSON(human);
 
-    world.addCharacter(humanoid);
+    world.addCharacter(humanoid, {"meshOverlay": mesh});
 
-    /*
-    for (var e in human.parts) {
-        var eInfo = human.parts[e];
-
-        var entity;
-        switch (eInfo.type) {
-            case "SPHERE": 
-                entity = new Sphere(e, eInfo.radius, { "mass": eInfo.mass });
-                break;
-            case "CAPSULE": 
-                entity = new Capsule(e, (eInfo.radiusTop + eInfo.radiusBottom)/2.0, eInfo.height, {"mass": eInfo.mass});
-                break;
-            case "BOX":
-                entity = new Box(e, eInfo.sides, { "mass": eInfo.mass });
-                break;
-            default:
-                throw "Unknown Entity type: " + eInfo.type;
-        }
-        entity.setPosition(eInfo.position);
-        var offset = 0.01;
-        if (e === 'rForearm' || e === 'rArm') {
-            offset += .065;
-        } else if (e === 'rHand') {
-            offset += .08;
-        } else if (e === 'lForearm' || e === 'lArm') {
-            offset += -.065;
-        } else if (e === 'lHand') {
-            offset += -.08;
-        } else if (e === 'rShin') {
-            offset += .04;
-        } else if (e === 'lShin') {
-            offset += .04;
-        } else if (e === 'rThigh') {
-            offset += -.008;
-        } else if (e === 'rFoot' || e === 'lFoot') {
-            offset += .2;
-        } 
-        world.addEntity(entity, {"mesh": {"faces": mesh[e].faces, "vertices": mesh[e].vertices, "color": mesh[e].color, "lineOffset": offset}});
-    }
-
-    for (var j in human.joints) {
-        var jInfo = human.joints[j];
-
-        var joint;
-        switch(jInfo.type) {
-            case "HINGE":
-                joint = new Hinge(j, 
-                                  {"A": jInfo.A, "B": jInfo.B}, 
-                                  jInfo.position, 
-                                  jInfo.axis, 
-                                  {"lo": jInfo.min[2], "hi": jInfo.max[2]});
-
-                break;
-            default:
-                throw "Unknown Joint type: " + jInfo.type;
-        }
-        world.addJoint(joint, {render: false});
-    }
-    */
 
     var controllers = {};
 
