@@ -18,8 +18,8 @@ function Character(name, opts) {
 Character.prototype.constructor = Character;
 
 Character.prototype.initialize = function() {
-    this._entities = {};
-    this._joints = {};
+    this.entities = {};
+    this.joints = {};
 };
 
 Character.prototype.setFromJSON = function(data, overlayMesh) {
@@ -29,16 +29,18 @@ Character.prototype.setFromJSON = function(data, overlayMesh) {
     for (var e in data.parts) {
         var eInfo = data.parts[e];
 
+        var name = this.name + '.' +  e;
+
         var entity;
         switch (eInfo.type) {
             case "SPHERE": 
-                entity = new Sphere(e, eInfo.radius, { "mass": eInfo.mass });
+                entity = new Sphere(name, eInfo.radius, { "mass": eInfo.mass });
                 break;
             case "CAPSULE": 
-                entity = new Capsule(e, (eInfo.radiusTop + eInfo.radiusBottom)/2.0, eInfo.height, {"mass": eInfo.mass});
+                entity = new Capsule(name, (eInfo.radiusTop + eInfo.radiusBottom)/2.0, eInfo.height, {"mass": eInfo.mass});
                 break;
             case "BOX":
-                entity = new Box(e, eInfo.sides, { "mass": eInfo.mass });
+                entity = new Box(name, eInfo.sides, { "mass": eInfo.mass });
                 break;
             default:
                 throw "Unknown Entity type: " + eInfo.type;
@@ -64,15 +66,18 @@ Character.prototype.setFromJSON = function(data, overlayMesh) {
             offset += .2;
         } 
         */
+        this.addEntity(entity);
     }
     for (var j in data.joints) {
         var jInfo = human.joints[j];
 
+        var name = this.name + '.' + j;
+
         var joint;
         switch(jInfo.type) {
             case "HINGE":
-                joint = new Hinge(j, 
-                                  {"A": jInfo.A, "B": jInfo.B}, 
+                joint = new Hinge(name, 
+                                  {"A": this.name+'.'+jInfo.A, "B": this.name+'.'+jInfo.B}, 
                                   jInfo.position, 
                                   jInfo.axis, 
                                   {"lo": jInfo.min[2], "hi": jInfo.max[2]});
@@ -87,11 +92,11 @@ Character.prototype.setFromJSON = function(data, overlayMesh) {
 };
 
 Character.prototype.addEntity = function(e) {
-    this._entities[e.name] = e;
+    this.entities[e.name] = e;
 };
 
 Character.prototype.addJoint = function(j) {
-    this._joints[j.name] = j;
+    this.joints[j.name] = j;
 };
 
 

@@ -8,6 +8,8 @@ var Cylinder    = require('./entity/cylinder');
 var Hinge       = require('./joints/hinge');
 var Ball        = require('./joints/ball');
 
+var Character   = require('./character');
+
 var PDController = require('./controller/pdcontroller');
 var VPDController = require('./controller/vpdcontroller');
 
@@ -23,6 +25,13 @@ window.initialize = function() {
 
     // MAKE HUMAN!
 
+    var humanoid = new Character('human');
+
+    humanoid.setFromJSON(human);
+
+    world.addCharacter(humanoid);
+
+    /*
     for (var e in human.parts) {
         var eInfo = human.parts[e];
 
@@ -80,6 +89,7 @@ window.initialize = function() {
         }
         world.addJoint(joint, {render: false});
     }
+    */
 
     var controllers = {};
 
@@ -106,17 +116,17 @@ window.initialize = function() {
     };
 
     for (var name in human.joints) {
-        controllers[name] = new PDController(world.joints[name], 0);
+        controllers['human.'+name] = new PDController(world.joints['human.'+name], 0);
     }
 
-    var rHip_uTorsoVPD = new VPDController(world.joints['rHip'], world.entities['uTorso'], 0, {kp: 300, kd: 30});
-    var lHip_lThighVPD = new VPDController(world.joints['lHip'], world.entities['lThigh'], 0, {kp: -300, kd: -30});
+    var rHip_uTorsoVPD = new VPDController(world.joints['human.rHip'], world.entities['human.uTorso'], 0, {kp: 300, kd: 30});
+    var lHip_lThighVPD = new VPDController(world.joints['human.lHip'], world.entities['human.lThigh'], 0, {kp: -300, kd: -30});
 
-    var lHip_uTorsoVPD = new VPDController(world.joints['lHip'], world.entities['uTorso'], 0, {kp: 300, kd: 30});
-    var rHip_rThighVPD = new VPDController(world.joints['rHip'], world.entities['rThigh'], 0, {kp: -300, kd: -30});
+    var lHip_uTorsoVPD = new VPDController(world.joints['human.lHip'], world.entities['human.uTorso'], 0, {kp: 300, kd: 30});
+    var rHip_rThighVPD = new VPDController(world.joints['human.rHip'], world.entities['human.rThigh'], 0, {kp: -300, kd: -30});
 
-    var lHip = world.joints['lHip'];
-    var rHip = world.joints['rHip'];
+    var lHip = world.joints['human.lHip'];
+    var rHip = world.joints['human.rHip'];
 
 
     var COM = { color: [255,0,0], position: [0,1,0], getRadius: function() { return .06; }};
@@ -129,8 +139,8 @@ window.initialize = function() {
         var massTot = 0;
         var posTot = [0,0,0];
         for (var name in human.parts) {
-            var pos = world.entities[name].getPosition();
-            var mass = world.entities[name].getMass();
+            var pos = world.entities['human.'+name].getPosition();
+            var mass = world.entities['human.'+name].getMass();
 
             posTot = [posTot[0] + pos[0]*mass,posTot[1] + pos[1]*mass,posTot[2] + pos[2]*mass];
             massTot += mass;
@@ -158,7 +168,7 @@ window.simulationCallback = function(dt) {
 
         // COMFB
 
-        var d = com[0] - world.joints['rAnkle'].getPosition()[0];
+        var d = com[0] - world.joints['human.rAnkle'].getPosition()[0];
 
         var optimizer = (simbiconParams.cde*d + simbiconParams.cve*com_vel);
 
@@ -173,60 +183,60 @@ window.simulationCallback = function(dt) {
         lHip.addTorque(-rh_rt_torque);
 
 
-        controllers['neck2head'].goal = 0;
-        controllers['uTorso2neck'].goal = 0;
-        controllers['waist'].goal = 0;
-        controllers['waist'].kp = 600;
-        controllers['waist'].kd = 60;
+        controllers['human.neck2head'].goal = 0;
+        controllers['human.uTorso2neck'].goal = 0;
+        controllers['human.waist'].goal = 0;
+        controllers['human.waist'].kp = 600;
+        controllers['human.waist'].kd = 60;
 
-        controllers['lTorso2uTorso'].goal = 0;
-        controllers['lTorso2uTorso'].kp = 600;
-        controllers['lTorso2uTorso'].kd = 60;
+        controllers['human.lTorso2uTorso'].goal = 0;
+        controllers['human.lTorso2uTorso'].kp = 600;
+        controllers['human.lTorso2uTorso'].kd = 60;
 
-        controllers['lWrist'].goal = 0;
-        controllers['lWrist'].kp = 5;
-        controllers['lWrist'].kd = 3;
+        controllers['human.lWrist'].goal = 0;
+        controllers['human.lWrist'].kp = 5;
+        controllers['human.lWrist'].kd = 3;
 
-        controllers['rWrist'].goal = 0;
-        controllers['rWrist'].kp = 5;
-        controllers['rWrist'].kd = 3;
+        controllers['human.rWrist'].goal = 0;
+        controllers['human.rWrist'].kp = 5;
+        controllers['human.rWrist'].kd = 3;
 
-        controllers['rKnee'].goal = simbiconParams.swke;
+        controllers['human.rKnee'].goal = simbiconParams.swke;
 
-        controllers['rAnkle'].goal = simbiconParams.ankle;
+        controllers['human.rAnkle'].goal = simbiconParams.ankle;
 
-        controllers['lKnee'].goal = simbiconParams.stke;
+        controllers['human.lKnee'].goal = simbiconParams.stke;
 
-        controllers['lAnkle'].goal = simbiconParams.ankle;
+        controllers['human.lAnkle'].goal = simbiconParams.ankle;
 
-        controllers['rShoulder'].goal = .3;
-        controllers['rShoulder'].kp = 100;
-        controllers['rShoulder'].kd = 30;
+        controllers['human.rShoulder'].goal = .3;
+        controllers['human.rShoulder'].kp = 100;
+        controllers['human.rShoulder'].kd = 30;
 
-        controllers['rElbow'].goal = 0;
-        controllers['rElbow'].kp = 100;
-        controllers['rElbow'].kd = 30;
+        controllers['human.rElbow'].goal = 0;
+        controllers['human.rElbow'].kp = 100;
+        controllers['human.rElbow'].kd = 30;
 
 
-        controllers['lShoulder'].goal = -.3;
-        controllers['lShoulder'].kp = 100;
-        controllers['lShoulder'].kd = 30;
+        controllers['human.lShoulder'].goal = -.3;
+        controllers['human.lShoulder'].kp = 100;
+        controllers['human.lShoulder'].kd = 30;
 
-        controllers['rElbow'].goal = -.4;
-        controllers['rElbow'].kp = 100;
-        controllers['rElbow'].kd = 30;
+        controllers['human.rElbow'].goal = -.4;
+        controllers['human.rElbow'].kp = 100;
+        controllers['human.rElbow'].kd = 30;
         if (t > simbiconParams.dt) {
             t = 0;
             phase = 1;
         }
     } else if (phase === 1) {
 
-        var d = com[0] - world.joints['rAnkle'].getPosition()[0];
+        var d = com[0] - world.joints['human.rAnkle'].getPosition()[0];
 
         var optimizer = simbiconParams.cdo*d + simbiconParams.cvo*com_vel;
 
-        controllers['rKnee'].goal = simbiconParams.swko;
-        controllers['lKnee'].goal = simbiconParams.stko;
+        controllers['human.rKnee'].goal = simbiconParams.swko;
+        controllers['human.lKnee'].goal = simbiconParams.stko;
 
         lHip_uTorsoVPD.goal = simbiconParams.tor;
         rHip_rThighVPD.goal = (simbiconParams.swho + optimizer);
@@ -243,19 +253,19 @@ window.simulationCallback = function(dt) {
             t= 0;
             phase = 2;
         }
-        world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['rFoot'].body, world.simulator.entities['ground'].body, test);
+        world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['human.rFoot'].body, world.simulator.entities['ground'].body, test);
 
     } else if (phase === 2) {
-        var d = com[0] - world.joints['lAnkle'].getPosition()[0];
+        var d = com[0] - world.joints['human.lAnkle'].getPosition()[0];
 
         var optimizer = simbiconParams.cde*d + simbiconParams.cve*com_vel;
 
-        controllers['lKnee'].goal = simbiconParams.swke;
-        controllers['rKnee'].goal = simbiconParams.stke;
-        controllers['rShoulder'].goal = -.3;
-        controllers['lShoulder'].goal = .3;
-        controllers['rElbow'].goal = -.4;
-        controllers['lElbow'].goal = 0;
+        controllers['human.lKnee'].goal = simbiconParams.swke;
+        controllers['human.rKnee'].goal = simbiconParams.stke;
+        controllers['human.rShoulder'].goal = -.3;
+        controllers['human.lShoulder'].goal = .3;
+        controllers['human.rElbow'].goal = -.4;
+        controllers['human.lElbow'].goal = 0;
 
         rHip_uTorsoVPD.goal = simbiconParams.tor;
         lHip_lThighVPD.goal = (simbiconParams.swhe + optimizer);
@@ -273,12 +283,12 @@ window.simulationCallback = function(dt) {
         }
     } else if (phase === 3) {
 
-        var d = com[0] - world.joints['lAnkle'].getPosition()[0];
+        var d = com[0] - world.joints['human.lAnkle'].getPosition()[0];
 
         var optimizer = simbiconParams.cdo*d + simbiconParams.cvo*com_vel;
 
-        controllers['lKnee'].goal = simbiconParams.swko;
-        controllers['rKnee'].goal = simbiconParams.stko;
+        controllers['human.lKnee'].goal = simbiconParams.swko;
+        controllers['human.rKnee'].goal = simbiconParams.stko;
 
         rHip_uTorsoVPD.goal = simbiconParams.tor;
         lHip_lThighVPD.goal = (simbiconParams.swho + optimizer);
@@ -295,12 +305,12 @@ window.simulationCallback = function(dt) {
             t = 0;
             phase = 0;
         }
-        world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['lFoot'].body, world.simulator.entities['ground'].body, test);
+        world.simulator.dynamicsWorld.contactPairTest(world.simulator.entities['human.lFoot'].body, world.simulator.entities['ground'].body, test);
     }
 
     for (var name in controllers) {
-        if (name === 'lHip') {continue; }
-        if (name === 'rHip') {continue; }
+        if (name === 'human.lHip') {continue; }
+        if (name === 'human.rHip') {continue; }
         var torque = controllers[name].evaluate();
         controllers[name].joint.addTorque(torque);
     }

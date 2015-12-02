@@ -28,7 +28,7 @@ Renderer.prototype.constructor = Renderer;
 Renderer.prototype.initializeGL = function() {
 
     try{
-        this.renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true});
+        this.renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true, antialias: true});
         this.renderType = 'webgl';
     }catch(e){
         try{

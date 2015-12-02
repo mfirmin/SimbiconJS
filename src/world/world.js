@@ -19,6 +19,7 @@ function World(opts) {
 
     this.entities = {};
     this.joints   = {};
+    this.characters = {};
 }
 
 World.prototype.constructor = World;
@@ -49,7 +50,7 @@ World.prototype.addEntity = function(e, opts) {
     opts['render'] = (opts.render === undefined) ? true : opts.render;
 
     opts['simulate'] = (opts.simulate === undefined) ? true : opts.simulate;
-    
+
     var name = e.name;
     if (name in this.entities) {
         console.error('Cannot add entity. Entity with name ' + name + 'already exists.');
@@ -66,6 +67,18 @@ World.prototype.addEntity = function(e, opts) {
 
     this.entities[name] = e;
 
+};
+
+World.prototype.addCharacter = function(character) {
+    console.log(character);
+    for (var e in character.entities) {
+        console.log(e);
+        this.addEntity(character.entities[e]);
+    }
+    for (var j in character.joints) {
+        console.log(j);
+        this.addJoint(character.joints[j]);
+    }
 };
 
 World.prototype.go = function(opts) {
