@@ -3,8 +3,8 @@ var Sphere      = require('./entity/sphere');
 var Box         = require('./entity/box');
 var Capsule     = require('./entity/capsule');
 var Cylinder    = require('./entity/cylinder');
-var Hinge       = require('./joints/hinge');
-var Ball        = require('./joints/ball');
+var Hinge       = require('./joint/hinge');
+var Ball        = require('./joint/ball');
 
 function Character(name, opts) {
 
