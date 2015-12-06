@@ -1,6 +1,10 @@
 
 var utils = require('../utils/utils');
 
+var Ammo  = require('../lib/ammo');
+
+console.log(Ammo);
+
 function Simulator(dt, opts) {
 
 

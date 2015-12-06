@@ -11,7 +11,7 @@ var joints    = require('./joint/index');
 var controllers = require('./controller/index');
 var utils     = require('./utils/utils');
 
-//require('lib/index');
+var lib       = require('./lib/index');
 
 
 var Pear = { "version": "0.0.0" };
@@ -28,5 +28,7 @@ Pear.joints = joints;
 Pear.controllers = controllers;
 
 Pear.utils = utils;
+
+Pear.lib = lib;
 
 module.exports = Pear;

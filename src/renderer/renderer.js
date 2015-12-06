@@ -1,6 +1,7 @@
 
 
-var THREE = require('../lib/three.min.js');
+var THREE = require('../lib/three.min');
+var ConvexHullGrahamScan = require('../lib/graham_scan.min');
 
 var Box      = require('../entity/box');
 var Cylinder = require('../entity/cylinder');
