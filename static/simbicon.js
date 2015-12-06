@@ -4,14 +4,14 @@ var dt = 0.0001;
 
 window.initialize = function() {
 
-    var world = new Pear.World({FPS: FPS, dt: dt});
-    var ground = new Pear.entities.Box('ground', [100,1,1], {mass: 0, color: [0,0,255]});
+    var world = new Coach.World({FPS: FPS, dt: dt});
+    var ground = new Coach.entities.Box('ground', [100,1,1], {mass: 0, color: [0,0,255]});
     ground.setPosition([0,-.5,0]);
     world.addEntity(ground, {shader: {fragmentShader: 'ground_fragShader', vertexShader: 'ground_vertShader'}});
 
     // MAKE HUMAN!
 
-    var humanoid = new Pear.Character('human');
+    var humanoid = new Coach.Character('human');
 
     humanoid.setFromJSON(human);
 
@@ -43,14 +43,14 @@ window.initialize = function() {
     };
 
     for (var name in human.joints) {
-        controllers['human.'+name] = new Pear.controllers.PDController(world.joints['human.'+name], 0);
+        controllers['human.'+name] = new Coach.controllers.PDController(world.joints['human.'+name], 0);
     }
 
-    var rHip_uTorsoVPD = new Pear.controllers.VPDController(world.joints['human.rHip'], world.entities['human.uTorso'], 0, {kp: 300, kd: 30});
-    var lHip_lThighVPD = new Pear.controllers.VPDController(world.joints['human.lHip'], world.entities['human.lThigh'], 0, {kp: -300, kd: -30});
+    var rHip_uTorsoVPD = new Coach.controllers.VPDController(world.joints['human.rHip'], world.entities['human.uTorso'], 0, {kp: 300, kd: 30});
+    var lHip_lThighVPD = new Coach.controllers.VPDController(world.joints['human.lHip'], world.entities['human.lThigh'], 0, {kp: -300, kd: -30});
 
-    var lHip_uTorsoVPD = new Pear.controllers.VPDController(world.joints['human.lHip'], world.entities['human.uTorso'], 0, {kp: 300, kd: 30});
-    var rHip_rThighVPD = new Pear.controllers.VPDController(world.joints['human.rHip'], world.entities['human.rThigh'], 0, {kp: -300, kd: -30});
+    var lHip_uTorsoVPD = new Coach.controllers.VPDController(world.joints['human.lHip'], world.entities['human.uTorso'], 0, {kp: 300, kd: 30});
+    var rHip_rThighVPD = new Coach.controllers.VPDController(world.joints['human.rHip'], world.entities['human.rThigh'], 0, {kp: -300, kd: -30});
 
     var lHip = world.joints['human.lHip'];
     var rHip = world.joints['human.rHip'];
