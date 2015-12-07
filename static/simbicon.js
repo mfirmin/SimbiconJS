@@ -1,7 +1,7 @@
 
 var $ = Coach.lib.$;
 
-var FPS = 1/30;
+var FPS = 30;
 var dt = 0.0001;
 
 $(document).ready(function() {

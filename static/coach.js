@@ -48,25 +48,6 @@ Character.prototype.setFromJSON = function(data, overlayMesh) {
         }
         entity.setPosition(eInfo.position);
         var offset = 0.01;
-        /*
-        if (e === 'rForearm' || e === 'rArm') {
-            offset += .065;
-        } else if (e === 'rHand') {
-            offset += .08;
-        } else if (e === 'lForearm' || e === 'lArm') {
-            offset += -.065;
-        } else if (e === 'lHand') {
-            offset += -.08;
-        } else if (e === 'rShin') {
-            offset += .04;
-        } else if (e === 'lShin') {
-            offset += .04;
-        } else if (e === 'rThigh') {
-            offset += -.008;
-        } else if (e === 'rFoot' || e === 'lFoot') {
-            offset += .2;
-        } 
-        */
         this.addEntity(entity);
     }
     for (var j in data.joints) {
@@ -2237,7 +2218,7 @@ function World(opts, element) {
     opts = (opts === undefined) ? {} : opts;
 
 
-    this.FPS = (opts.FPS === undefined) ? 1/30. : opts.FPS;
+    this.FPS = (opts.FPS === undefined) ? 30. : opts.FPS;
     this.dt  = (opts.dt === undefined) ? 0.0001 : opts.dt;
 
     this.renderer = new Renderer({}, element);
@@ -2312,7 +2293,10 @@ World.prototype.go = function(opts) {
 
     var scope = this;
     var ready = true;
-    var fpms = this.FPS*1000;
+    var framerate = 1./(this.FPS);
+    var framerateMS = framerate*1000;
+
+    opts = (opts === undefined) ? {} : opts;
 
     this.simulator.setCallback(opts.simulationCallback);
     this.renderer.setCallback(opts.renderCallback);
@@ -2325,9 +2309,11 @@ World.prototype.go = function(opts) {
         if (ready) {
             ready = false;
             var time = 0;
-            while (Date.now() - now < fpms) {
-                scope.step();
-                time += scope.dt;
+            while (Date.now() - now < framerateMS) {
+                if (time < framerate) {
+                    scope.step();
+                    time += scope.dt;
+                }
             }
 
             scope.render(time);
