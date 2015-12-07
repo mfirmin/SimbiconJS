@@ -7,58 +7,10 @@ title: SimbiconJS
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <title>SimbiconJS</title>
         <link rel="stylesheet" type="text/css" href="css/simbicon.css">
-        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
         <script src="static/human.js"></script>
         <script src="static/mesh.js"></script>
         <script src="static/coach.js"></script>
         <script src="static/simbicon.js"></script>
-        <script>
-            $(document).ready(function() {
-
-                window.initialize();
-
-                $('#simbicon').append(world.renderer.panel);
-                world.renderer.setSize();
-
-                world.go({simulationCallback:simulationCallback, renderCallback:renderCallback});
-
-                $('#fwalk').click(function() {
-                    setSimbiconParameters({
-                        dt: .2,
-                        cde: 0,
-                        cdo: -2.,
-                        cve: -.2,
-                        cvo: 0,
-                        tor: 0.1,
-                        swhe: -.73,
-                        swho: .7,
-                        swke:  1.83,
-                        swko: .05,
-                        stke: .05,
-                        stko: .1,
-                        ankle: -.2,
-                    });
-                });
-
-                $('#walk').click(function() {
-                    setSimbiconParameters({
-                        dt: .3,
-                        cde: 0,
-                        cdo: -2.2,
-                        cve: -.2,
-                        cvo: 0,
-                        tor: 0.,
-                        swhe: -.4,
-                        swho: .7,
-                        swke:  1.1,
-                        swko: .05,
-                        stke: .05,
-                        stko: .1,
-                        ankle: -.2,
-                    });
-                });
-            });
-        </script>
     </head>
     <body>
         <h1>SimbiconJS</h1>
