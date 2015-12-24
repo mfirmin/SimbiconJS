@@ -2,11 +2,20 @@
 var $ = Coach.lib.$;
 
 var FPS = 30;
-var dt = 0.0001;
+var dt = 0.0002;
 
 $(document).ready(function() {
 
-    var world = new Coach.World({FPS: FPS, dt: dt}, '#simbicon');
+    var world = new Coach.World({
+        "FPS": FPS,
+        "dt": dt,
+        "2D": true,
+        "cameraOptions": {
+            "type": "orthographic",
+            "position": [0,1,5],
+            "target": [0,1,0],
+        },
+    }, '#simbicon');
 
     var ground = new Coach.entities.Box('ground', [100,1,1], {mass: 0, color: [0,0,255]});
     ground.setPosition([0,-.5,0]);
@@ -105,10 +114,10 @@ $(document).ready(function() {
             lHip_uTorsoVPD.goal = simbiconParams.tor;
             rHip_rThighVPD.goal = (simbiconParams.swhe + optimizer);
 
-            var lh_ut_torque = lHip_uTorsoVPD.evaluate();
+            var lh_ut_torque = lHip_uTorsoVPD.evaluate(dt);
             lHip.addTorque(+lh_ut_torque);
 
-            var rh_rt_torque = rHip_rThighVPD.evaluate();
+            var rh_rt_torque = rHip_rThighVPD.evaluate(dt);
             rHip.addTorque(+rh_rt_torque);
             lHip.addTorque(-rh_rt_torque);
 
@@ -171,10 +180,10 @@ $(document).ready(function() {
             lHip_uTorsoVPD.goal = simbiconParams.tor;
             rHip_rThighVPD.goal = (simbiconParams.swho + optimizer);
 
-            var lh_ut_torque = lHip_uTorsoVPD.evaluate();
+            var lh_ut_torque = lHip_uTorsoVPD.evaluate(dt);
             lHip.addTorque(+lh_ut_torque);
 
-            var rh_rt_torque = rHip_rThighVPD.evaluate();
+            var rh_rt_torque = rHip_rThighVPD.evaluate(dt);
             rHip.addTorque(+rh_rt_torque);
             lHip.addTorque(-rh_rt_torque);
 
@@ -200,10 +209,10 @@ $(document).ready(function() {
             rHip_uTorsoVPD.goal = simbiconParams.tor;
             lHip_lThighVPD.goal = (simbiconParams.swhe + optimizer);
 
-            var rh_ut_torque = rHip_uTorsoVPD.evaluate();
+            var rh_ut_torque = rHip_uTorsoVPD.evaluate(dt);
             rHip.addTorque(+rh_ut_torque);
 
-            var lh_lt_torque = lHip_lThighVPD.evaluate();
+            var lh_lt_torque = lHip_lThighVPD.evaluate(dt);
             lHip.addTorque(+lh_lt_torque);
             rHip.addTorque(-lh_lt_torque);
 
@@ -223,10 +232,10 @@ $(document).ready(function() {
             rHip_uTorsoVPD.goal = simbiconParams.tor;
             lHip_lThighVPD.goal = (simbiconParams.swho + optimizer);
 
-            var rh_ut_torque = rHip_uTorsoVPD.evaluate();
+            var rh_ut_torque = rHip_uTorsoVPD.evaluate(dt);
             rHip.addTorque(+rh_ut_torque);
 
-            var lh_lt_torque = lHip_lThighVPD.evaluate();
+            var lh_lt_torque = lHip_lThighVPD.evaluate(dt);
             lHip.addTorque(+lh_lt_torque);
             rHip.addTorque(-lh_lt_torque);
 
@@ -245,10 +254,15 @@ $(document).ready(function() {
             controllers[name].joint.addTorque(torque);
         }
     };
-    var renderCallback = function(time) {
+    var renderCallback = function(camera,time) {
         var com = getCOM();
-        world.renderer.camera.position.x = com[0];
-        $('#simRate').text((time*30.).toFixed(1)); 
+
+        var pos = camera.getPosition();
+        camera.setPosition([com[0], pos[1], pos[2]]);
+
+        world.renderer.light.position.x = com[0];
+
+        $('#simRate').text((time*30.).toFixed(1));
     }
 
     $('#fwalk').click(function() {
