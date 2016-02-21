@@ -11,9 +11,9 @@ $(document).ready(function() {
         "dt": dt,
         "2D": true,
         "cameraOptions": {
-            "type": "perspective",
-            "position": [2,2,2],
-            "target": [0,0,0],
+            "type": "orthographic",
+            "position": [0,1,5],
+            "target": [0,1,0],
         },
     }, '#simbicon');
 
@@ -301,8 +301,6 @@ $(document).ready(function() {
         });
     });
 
-    world.go({/*simulationCallback:simulationCallback,*/ /*renderCallback:renderCallback*/});
-
-//    window.world = world;
+    world.go({simulationCallback:simulationCallback, renderCallback:renderCallback});
 
 });

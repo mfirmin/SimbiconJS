@@ -62,7 +62,12 @@ Character.prototype.setFromJSON = function(data, overlayMesh) {
                                   this.entities[this.name+'.'+jInfo.A],this.entities[this.name+'.'+jInfo.B],
                                   jInfo.position,
                                   jInfo.axis,
-                                  {"lo": jInfo.min[2], "hi": jInfo.max[2]});
+                                  {
+                                      limits: {
+                                          "lo": jInfo.min[2],
+                                          "hi": jInfo.max[2]
+                                      }
+                                  });
 
                 break;
             default:
@@ -156,7 +161,7 @@ PDController.prototype.evaluate = function() {
 
     var ret = this.kp*(this.goal - currentAngle) + this.kd*(0 - currentAngularVelocity);
 
-    return [0,0,ret];
+    return ret;
 
 };
 
@@ -191,7 +196,7 @@ function PDController3D(joint, goal, options) {
 
 PDController3D.prototype.constructor = PDController3D;
 
-PDController3D.prototype.evaluate = function(dt) {
+PDController3D.prototype.evaluate = function() {
 
     var torque = [0,0,0];
 
@@ -288,7 +293,7 @@ VPDController.prototype.evaluate = function(dt) {
 
 //    var currentAngle = Math.acos(this.part.getRotation()[3])*2;
     var rot = this.part.getOrientation();
-    var currentAngle = Math.atan2(2*(rot[3]*rot[2] + rot[0]*rot[1]), 1 - 2*(rot[1]*rot[1]+rot[2]*rot[2]));
+    var currentAngle = Math.atan2(2*(rot[0]*rot[3] + rot[1]*rot[2]), 1 - 2*(rot[2]*rot[2]+rot[3]*rot[3]));
 
     if (this.lastAngle === undefined) {
        this.lastAngle = currentAngle;
@@ -302,7 +307,7 @@ VPDController.prototype.evaluate = function(dt) {
 
     this.lastAngle = currentAngle;
 
-    return [0,0,ret];
+    return ret;
 };
 
 
@@ -731,7 +736,7 @@ function Hinge(name, parent, child, pos, axis, opts) {
     this.angle = (opts.angle === undefined) ? 0 : opts.angle;
     this.angularVelocity = (opts.angularVelocity === undefined) ? 0 : opts.angularVelocity;
     this.angularVelocityPrev = this.angularVelocity;
-    this.torque = 0;
+    this.torque = [0,0,0];
 
     limits = (opts.limits === undefined) ? {} : opts.limits;
 
@@ -787,7 +792,7 @@ Hinge.prototype.setAngularVelocity = function(angVel) {
 };
 
 Hinge.prototype.resetTorque = function() {
-    this.setTorque(0);
+    this.setTorque([0,0,0]);
 };
 
 Hinge.prototype.setTorque = function(t) {
@@ -799,17 +804,16 @@ Hinge.prototype.addTorque = function(t) {
 };
 
 Hinge.prototype.getTorque = function() {
-    return [0,0,this.torque];
+    return this.torque;
 };
 
 Hinge.prototype.getLimitedTorque = function() {
     var ret = this.torque;
-    if (Math.abs(ret) > this.torqueLimit) {
-        ret = this.torqueLimit * ret/Math.abs(ret);
-        return [0,0,ret];
+    if (Math.abs(ret[2]) > this.torqueLimit) {
+        ret[2] = this.torqueLimit * ret[2]/Math.abs(ret[2]);
     }
 
-    return [0,0,this.torque];
+    return ret;
 };
 
 Hinge.prototype.getType = function() {
@@ -2373,7 +2377,7 @@ Simulator.prototype.addJoint = function(j) {
         var posA = this.entities[j.parent.name].entity.getPosition();
         var jointPosInA = [pos[0] - posA[0], pos[1] - posA[1], pos[2] - posA[2]];
 
-        if (j.B !== undefined) {
+        if (j.child !== undefined) {
             var posB = this.entities[j.child.name].entity.getPosition();
             var jointPosInB = [pos[0] - posB[0], pos[1] - posB[1], pos[2] - posB[2]];
             joint = new Ammo.btHingeConstraint(
@@ -2493,12 +2497,14 @@ Simulator.prototype.step = function(callback) {
 
         var T = j.getLimitedTorque();
 
+//        console.log(T);
+
         Tpos.setX(T[0]); Tneg.setX(-T[0]);
         Tpos.setY(T[1]); Tneg.setY(-T[1]);
         Tpos.setZ(T[2]); Tneg.setZ(-T[2]);
 
-//        A.applyTorque(Tpos);
-//        B.applyTorque(Tneg);
+        A.applyTorque(Tpos);
+        B.applyTorque(Tneg);
 
         j.resetTorque();
     }
@@ -2528,25 +2534,23 @@ Simulator.prototype.step = function(callback) {
         var jointBullet = j.jointBullet;
         if (jointEntity.getType() === 'HINGE') {
             jointEntity.setAngle(jointBullet.getHingeAngle(), this.dt);
+            var tform = jointBullet.getFrameOffsetA();
+
+            var body = jointBullet.getRigidBodyA();
+            body.getMotionState().getWorldTransform(trans);
+
+            var pos = [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()];
+
+            var jointVec = [tform.getOrigin().x(), tform.getOrigin().y(), tform.getOrigin().z()];
+
+            var axis = trans.getRotation().normalized();
+            var vec = utils.rotateVector(jointVec, utils.RFromQuaternion([axis.w(), axis.x(), axis.y(), axis.z()]));
+
+            jointEntity.setPosition([pos[0] + vec[0], pos[1] + vec[1], pos[2] + vec[2]]);
         } else if (jointEntity.getType() === 'BALL') {
             jointEntity.calculateOrientation();
             jointEntity.calculateAngularVelocity();
         }
-        /*
-        var tform = jointBullet.getFrameOffsetA();
-
-        var body = jointBullet.getRigidBodyA();
-        body.getMotionState().getWorldTransform(trans);
-
-        var pos = [trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()];
-
-        var jointVec = [tform.getOrigin().x(), tform.getOrigin().y(), tform.getOrigin().z()];
-
-        var axis = trans.getRotation().normalized();
-        var vec = utils.rotateVector(jointVec, utils.RFromQuaternion([axis.w(), axis.x(), axis.y(), axis.z()]));
-
-        jointEntity.setPosition([pos[0] + vec[0], pos[1] + vec[1], pos[2] + vec[2]]);
-        */
 
     };
     if (this.callback !== undefined) {
