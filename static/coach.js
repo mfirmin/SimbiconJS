@@ -25,7 +25,9 @@ Character.prototype.initialize = function() {
 
 Character.prototype.setFromJSON = function(data, overlayMesh) {
 
-    this._overlayMesh = overlayMesh;
+    if (overlayMesh !== undefined) {
+        this._overlayMesh = overlayMesh;
+    }
 
     for (var e in data.parts) {
         var eInfo = data.parts[e];
@@ -59,7 +61,8 @@ Character.prototype.setFromJSON = function(data, overlayMesh) {
         switch(jInfo.type) {
             case "HINGE":
                 joint = new Hinge(name,
-                                  this.entities[this.name+'.'+jInfo.A],this.entities[this.name+'.'+jInfo.B],
+                                  this.entities[this.name+'.'+jInfo.A],
+                                  this.entities[this.name+'.'+jInfo.B],
                                   jInfo.position,
                                   jInfo.axis,
                                   {
@@ -69,6 +72,24 @@ Character.prototype.setFromJSON = function(data, overlayMesh) {
                                       }
                                   });
 
+                break;
+            case "BALL":
+                joint = new Ball(name,
+                                 this.entities[this.name+'.'+jInfo.A],
+                                 this.entities[this.name+'.'+jInfo.B],
+                                 jInfo.position,
+                                 {
+                                     limits: {
+                                         "X": [jInfo.min[0], jInfo.max[0]],
+                                         "Y": [jInfo.min[1], jInfo.max[1]],
+                                         "Z": [jInfo.min[2], jInfo.max[2]],
+                                     },
+                                     torqueScale: [
+                                         jInfo.torqueScale[0],
+                                         jInfo.torqueScale[1],
+                                         jInfo.torqueScale[2]
+                                     ]
+                                 });
                 break;
             default:
                 throw "Unknown Joint type: " + jInfo.type;
@@ -596,8 +617,8 @@ function Ball(name, parent, child, pos, opts) {
 
     this.position = pos;
 
-    this.angleLast = [0,0,0,0];
-    this.angle = [0,0,0,0];
+    this.angleLast = [1,0,0,0];
+    this.angle = [1,0,0,0];
 
     this.angularVelocity = [0,0,0];
     this.angularVelocityPrev = this.angularVelocity;
@@ -2357,6 +2378,7 @@ Simulator.prototype.addJoint = function(j) {
 
         joint = new Ammo.btPoint2PointConstraint(this.entities[j.parent.name].body, this.entities[j.child.name].body, pivotInA, pivotInB);
 
+        /*
         if (j.limits["X"] !== undefined) {
             joint.setLimit(3, j.limits["X"][0]*Math.PI/180, j.limits["X"][1]*Math.PI/180);
         }
@@ -2366,6 +2388,7 @@ Simulator.prototype.addJoint = function(j) {
         if (j.limits["Z"] !== undefined) {
             joint.setLimit(5, j.limits["Z"][0]*Math.PI/180, j.limits["Z"][1]*Math.PI/180);
         }
+        */
         /*
         if (j.B === undefined) {
             joint = new Ammo.btPoint2PointConstraint(this.entities[j.A].body, new Ammo.btVector3(jointPosInA[0], jointPosInA[1], jointPosInA[2]));
@@ -2497,8 +2520,6 @@ Simulator.prototype.step = function(callback) {
 
         var T = j.getLimitedTorque();
 
-//        console.log(T);
-
         Tpos.setX(T[0]); Tneg.setX(-T[0]);
         Tpos.setY(T[1]); Tneg.setY(-T[1]);
         Tpos.setZ(T[2]); Tneg.setZ(-T[2]);
@@ -2525,7 +2546,7 @@ Simulator.prototype.step = function(callback) {
             entity.setOrientation([rot.w(), rot.x(), rot.y(), rot.z()]);
 
             var angVel = body.getAngularVelocity();
-            entity.setAngularVelocity([angVel.x(), angVel.y(), angVel.z()])
+            entity.setAngularVelocity([angVel.x(), angVel.y(), angVel.z()]);
         }
     };
     for (var name in this.joints) {
@@ -2758,9 +2779,13 @@ World.prototype.addCharacter = function(character, opts) {
     for (var e in character.entities) {
 
         var name = e.slice(e.indexOf('.')+1);
-        var mesh = {"faces": opts.meshOverlay[name].faces, "vertices": opts.meshOverlay[name].vertices, "color": opts.meshOverlay[name].color}
+        var eOpts = {};
+        if (opts !== undefined && opts.meshOverlay !== undefined) {
+            var mesh = {"faces": opts.meshOverlay[name].faces, "vertices": opts.meshOverlay[name].vertices, "color": opts.meshOverlay[name].color}
+            eOpts["mesh"] = mesh;
 
-        this.addEntity(character.entities[e], {"mesh": mesh});
+        }
+        this.addEntity(character.entities[e], eOpts);
     }
     for (var j in character.joints) {
         this.addJoint(character.joints[j]);
