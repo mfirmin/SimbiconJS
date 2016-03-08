@@ -112,50 +112,16 @@ module.exports = Character;
 
 },{"./entity/box":7,"./entity/capsule":8,"./entity/cylinder":9,"./entity/sphere":13,"./joint/ball":14,"./joint/hinge":15,"./world/world":27}],2:[function(require,module,exports){
 
-var World     = require('./world/world');
-var Simulator = require('./simulator/simulator');
-var Renderer  = require('./renderer/renderer');
-
-var Character = require('./character');
-
-var entities  = require('./entity/index');
-var joints    = require('./joint/index');
-
-var controllers = require('./controller/index');
-var utils     = require('./utils/utils');
-
-var lib       = require('./lib/index');
-
-var Coach = { "version": "0.0.0" };
-
-Coach.World = World;
-Coach.Renderer = Renderer;
-Coach.Simulator = Simulator;
-
-Coach.Character = Character;
-
-Coach.entities = entities;
-Coach.joints = joints;
-
-Coach.controllers = controllers;
-
-Coach.utils = utils;
-
-Coach.lib = lib;
-
-module.exports = Coach;
-
-},{"./character":1,"./controller/index":3,"./entity/index":11,"./joint/index":16,"./lib/index":20,"./renderer/renderer":24,"./simulator/simulator":25,"./utils/utils":26,"./world/world":27}],3:[function(require,module,exports){
-
 var controllers = {
     "PDController":  require('./pdcontroller'),
     "PDController3D":  require('./pdcontroller3D'),
-    "VPDController": require('./vpdcontroller')
+    "VPDController": require('./vpdcontroller'),
+    "VPDController3D": require('./vpdcontroller3D')
 };
 
 module.exports = controllers;
 
-},{"./pdcontroller":4,"./pdcontroller3D":5,"./vpdcontroller":6}],4:[function(require,module,exports){
+},{"./pdcontroller":3,"./pdcontroller3D":4,"./vpdcontroller":5,"./vpdcontroller3D":6}],3:[function(require,module,exports){
 
 var KP = 300;
 var KD = 30;
@@ -190,7 +156,7 @@ PDController.prototype.evaluate = function() {
 
 module.exports = PDController;
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 
 var KP = 300;
 var KD = 30;
@@ -225,6 +191,7 @@ PDController3D.prototype.evaluate = function() {
 
     var cInverse = [qRel[0], -qRel[1], -qRel[2], -qRel[3]];
 
+    // extra needed on top of qRel to rotate into goal!
     var qErr = utils.multiplyQuaternions(cInverse, this.goal);
 
     var sinTheta = Math.sqrt(qErr[1]*qErr[1]+qErr[2]*qErr[2]+qErr[3]*qErr[3]);
@@ -236,14 +203,15 @@ PDController3D.prototype.evaluate = function() {
         torque = [qErr[1]*multiplier, qErr[2]*multiplier, qErr[3]*multiplier];
     }
 
+    // torque in parent coords
     torque = utils.rotateVector(torque, utils.RFromQuaternion(qRel));
+    // wRel in parent coords
     var wRel = this.joint.getAngularVelocity();
     torque[0] += -wRel[0]*(-this.kd);
     torque[1] += -wRel[1]*(-this.kd);
     torque[2] += -wRel[2]*(-this.kd);
 
-//    var ret = utils.rotateVector(torque, utils.RFromQuaternion(this.joint.parent.getOrientation()));
-
+    // torque in parent coords
     return torque;
 
     /*
@@ -287,7 +255,7 @@ PDController3D.prototype.setGoal = function(g) {
 
 module.exports = PDController3D;
 
-},{"../utils/utils":26}],6:[function(require,module,exports){
+},{"../utils/utils":26}],5:[function(require,module,exports){
 
 var KP = 300;
 var KD = 30;
@@ -335,7 +303,86 @@ VPDController.prototype.evaluate = function(dt) {
 
 module.exports = VPDController;
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
+
+var utils = require('../utils/utils');
+
+var KP = 300;
+var KD = 30;
+
+function VPDController3D(joint, part, goal, options) {
+
+    var goalEuler = [
+        (goal["X"] === undefined) ? 0 : goal["X"],
+        (goal["Y"] === undefined) ? 0 : goal["Y"],
+        (goal["Z"] === undefined) ? 0 : goal["Z"]
+    ];
+    this.goal = utils.quaternionFromEulerAngles(goalEuler);
+    this.joint = joint;
+    this.part = part;
+
+    options = (options === undefined) ? {} : options;
+
+    this.kp = (options.kp === undefined) ? KP : options.kp;
+    this.kd = (options.kd === undefined) ? KD : options.kd;
+    this.goalVelocity = (options.goalVelocity === undefined) ? 0 : optionsgoalVelocity;
+
+    this.lastAngle;
+
+}
+
+VPDController3D.prototype.constructor = VPDController3D;
+
+VPDController3D.prototype.evaluate = function(dt) {
+
+    var torque = [0,0,0];
+
+    var qRel = this.part.getOrientation();
+
+    var cInverse = [qRel[0], -qRel[1], -qRel[2], -qRel[3]];
+
+    // qErr in world coordinates
+    var qErr = utils.multiplyQuaternions(cInverse, this.goal);
+
+    var sinTheta = Math.sqrt(qErr[1]*qErr[1]+qErr[2]*qErr[2]+qErr[3]*qErr[3]);
+    if (sinTheta > 1) { sinTheta = 1; }
+    if (Math.abs(sinTheta) < 1e-8) { }
+    else {
+        var absAngle = 2*Math.asin(sinTheta);
+        var multiplier = 1/sinTheta*absAngle*(-this.kp)*Math.abs(qErr[0])/qErr[0];
+        torque = [qErr[1]*multiplier, qErr[2]*multiplier, qErr[3]*multiplier];
+    }
+
+    torque = utils.rotateVector(torque, utils.RFromQuaternion(qRel));
+    // wRel in world coords
+    var wRel = this.part.getAngularVelocity();
+    torque[0] += -wRel[0]*(-this.kd);
+    torque[1] += -wRel[1]*(-this.kd);
+    torque[2] += -wRel[2]*(-this.kd);
+
+    // rotate torque into parent coords
+    torque = utils.rotateVector(torque, utils.RFromQuaternion(utils.getQuaternionInverse(this.joint.parent.getOrientation())));
+//    var ret = utils.rotateVector(torque, utils.RFromQuaternion(this.joint.parent.getOrientation()));
+
+    return torque;
+
+};
+
+VPDController3D.prototype.setGoal = function(g) {
+
+    var goalEuler = [
+        (g["X"] === undefined) ? 0 : g["X"],
+        (g["Y"] === undefined) ? 0 : g["Y"],
+        (g["Z"] === undefined) ? 0 : g["Z"]
+    ];
+    this.goal = utils.normalizeQuaternion(utils.quaternionFromEulerAngles(goalEuler));
+};
+
+
+
+module.exports = VPDController3D;
+
+},{"../utils/utils":26}],7:[function(require,module,exports){
 var Entity = require('./entity');
 
 function Box(name, sides, opts) {
@@ -662,8 +709,8 @@ Ball.prototype.calculateAngularVelocity = function() {
 
     var wRel = [cAngVel[0] - pAngVel[0],cAngVel[1] - pAngVel[1],cAngVel[2] - pAngVel[2]];
 
-//    console.log(this.parent.getOrientation());
 
+    // angVel is in world coords, rotate it by parent's orientation to get parent coords
     this.angularVelocity = utils.rotateVector(wRel, utils.RFromQuaternion(utils.getQuaternionInverse(this.parent.getOrientation())));
 //    this.angularVelocity = wRel;
 };
@@ -722,6 +769,7 @@ Ball.prototype.addTorqueZ = function(t) {
 };
 
 Ball.prototype.addTorque = function(t) {
+    // torque in parent coords
     this.torque[0] += t[0];
     this.torque[1] += t[1];
     this.torque[2] += t[2];
@@ -3099,9 +3147,7 @@ function drainQueue() {
         currentQueue = queue;
         queue = [];
         while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
+            currentQueue[queueIndex].run();
         }
         queueIndex = -1;
         len = queue.length;
@@ -3119,7 +3165,7 @@ process.nextTick = function (fun) {
         }
     }
     queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
+    if (!draining) {
         setTimeout(drainQueue, 0);
     }
 };
@@ -3153,11 +3199,47 @@ process.binding = function (name) {
     throw new Error('process.binding is not supported');
 };
 
+// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[2])(2)
+},{}],31:[function(require,module,exports){
+
+var World     = require('./world/world');
+var Simulator = require('./simulator/simulator');
+var Renderer  = require('./renderer/renderer');
+
+var Character = require('./character');
+
+var entities  = require('./entity/index');
+var joints    = require('./joint/index');
+
+var controllers = require('./controller/index');
+var utils     = require('./utils/utils');
+
+var lib       = require('./lib/index');
+
+var Coach = { "version": "0.0.0" };
+
+Coach.World = World;
+Coach.Renderer = Renderer;
+Coach.Simulator = Simulator;
+
+Coach.Character = Character;
+
+Coach.entities = entities;
+Coach.joints = joints;
+
+Coach.controllers = controllers;
+
+Coach.utils = utils;
+
+Coach.lib = lib;
+
+module.exports = Coach;
+
+},{"./character":1,"./controller/index":2,"./entity/index":11,"./joint/index":16,"./lib/index":20,"./renderer/renderer":24,"./simulator/simulator":25,"./utils/utils":26,"./world/world":27}]},{},[31])(31)
 });
