@@ -1,4 +1,5 @@
-var $ = Coach.lib.$;
+var $     = Coach.lib.$;
+var utils = Coach.utils;
 
 var FPS = 30;
 var dt = 0.0002;
@@ -45,17 +46,16 @@ $(document).ready(function() {
         }, coeffs);
     }
 
-    var pivot  = new Coach.entities.Sphere('pivot', .1, {mass: 0, color: [255,0,0]});
-    pivot.setPosition([0,1,0]);
-    var j0 = new Coach.joints.Ball('j0', pivot, world.entities['human.uTorso'], [0,1,0]);
-
-    world.addEntity(pivot);
-    world.addJoint(j0);
+//    var pivot  = new Coach.entities.Sphere('pivot', .1, {mass: 0, color: [255,0,0]});
+//    pivot.setPosition([0,1,0]);
+//    var j0 = new Coach.joints.Ball('j0', pivot, world.entities['human.uTorso'], [0,1,0]);
+//
+//    world.addEntity(pivot);
+//    world.addJoint(j0);
 
     var renderCallback = function(camera, time) {
         $('#simRate').text((time*30.).toFixed(1));
     }
-
 
     var simbiconParams = {
         dt: .3,
@@ -85,8 +85,8 @@ $(document).ready(function() {
         world.entities['human.uTorso'],
         [0,0,0],
         {
-            kp: 300,
-            kd: 30
+            kp: -300,
+            kd: -30
         }
     );
 
@@ -95,8 +95,8 @@ $(document).ready(function() {
         world.entities['human.lThigh'],
         [0,0,0],
         {
-            kp: -300,
-            kd: -30
+            kp: 300,
+            kd: 30
         }
     );
 
@@ -105,17 +105,17 @@ $(document).ready(function() {
         world.entities['human.uTorso'],
         [0,0,0],
         {
-            kp: 300,
-            kd: 30
+            kp: -300,
+            kd: -30
         }
     );
     var rHip_rThighVPD = new Coach.controllers.VPDController3D(
         world.joints['human.rHip'],
         world.entities['human.rThigh'],
-        0,
+        [0,0,0],
         {
-            kp: -300,
-            kd: -30
+            kp: 300,
+            kd: 30
         }
     );
 
@@ -166,16 +166,18 @@ $(document).ready(function() {
 
             var optimizer = (simbiconParams.cde*d + simbiconParams.cve*com_vel[0]);
 
-//            lHip_uTorsoVPD.setGoal({"Z": simbiconParams.tor});
-//            rHip_rThighVPD.setGoal({"Z": (simbiconParams.swhe + optimizer)});
+            optimizer = 0;
 
-//            var lh_ut_torque = lHip_uTorsoVPD.evaluate(dt);
-//            console.log(lh_ut_torque);
-//            lHip.addTorque(lh_ut_torque);
+            lHip_uTorsoVPD.setGoal({"Z": simbiconParams.tor});
+            rHip_rThighVPD.setGoal({"Z": (simbiconParams.swhe + optimizer)});
 
-//            var rh_rt_torque = rHip_rThighVPD.evaluate(dt);
-//            rHip.addTorque(rh_rt_torque);
-//            lHip.addTorque([-rh_rt_torque[0], -rh_rt_torque[1], -rh_rt_torque[2]]);
+            // torque in _world_ coords
+            var lh_ut_torque = lHip_uTorsoVPD.evaluate(dt);
+            lHip.addTorque(utils.rotateVector(lh_ut_torque, utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.lHip"].parent.getOrientation()))));
+
+            var rh_rt_torque = rHip_rThighVPD.evaluate(dt);
+            rHip.addTorque(utils.rotateVector(rh_rt_torque, utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.rHip"].parent.getOrientation()))));
+            lHip.addTorque(utils.rotateVector([-rh_rt_torque[0], -rh_rt_torque[1], -rh_rt_torque[2]], utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.lHip"].parent.getOrientation()))));
 
 
             controllers['human.neck2head'].setGoal({"Z": 0});
@@ -228,20 +230,22 @@ $(document).ready(function() {
 
             var d = com[0] - world.joints['human.rAnkle'].getPosition()[0];
 
-            var optimizer = simbiconParams.cdo*d + simbiconParams.cvo*com_vel;
+            var optimizer = simbiconParams.cdo*d + simbiconParams.cvo*com_vel[0];
+
+            optimizer = 0;
 
             controllers['human.rKnee'].setGoal({"Z": simbiconParams.swko});
             controllers['human.lKnee'].setGoal({"Z": simbiconParams.stko});
 
-//            lHip_uTorsoVPD.setGoal({"Z": simbiconParams.tor});
-//            rHip_rThighVPD.setGoal({"Z": (simbiconParams.swho + optimizer)});
-//
-//            var lh_ut_torque = lHip_uTorsoVPD.evaluate(dt);
-//            lHip.addTorque(lh_ut_torque);
-//
-//            var rh_rt_torque = rHip_rThighVPD.evaluate(dt);
-//            rHip.addTorque(rh_rt_torque);
-//            lHip.addTorque([-rh_rt_torque[0], -rh_rt_torque[1], -rh_rt_torque[2]]);
+            lHip_uTorsoVPD.setGoal({"Z": simbiconParams.tor});
+            rHip_rThighVPD.setGoal({"Z": (simbiconParams.swho + optimizer)});
+
+            var lh_ut_torque = lHip_uTorsoVPD.evaluate(dt);
+            lHip.addTorque(utils.rotateVector(lh_ut_torque, utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.lHip"].parent.getOrientation()))));
+
+            var rh_rt_torque = rHip_rThighVPD.evaluate(dt);
+            rHip.addTorque(utils.rotateVector(rh_rt_torque, utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.rHip"].parent.getOrientation()))));
+            lHip.addTorque(utils.rotateVector([-rh_rt_torque[0], -rh_rt_torque[1], -rh_rt_torque[2]], utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.lHip"].parent.getOrientation()))));
 
             var test = new Ammo.ConcreteContactResultCallback();
             test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {
@@ -253,7 +257,8 @@ $(document).ready(function() {
         } else if (phase === 2) {
             var d = com[0] - world.joints['human.lAnkle'].getPosition()[0];
 
-            var optimizer = simbiconParams.cde*d + simbiconParams.cve*com_vel;
+            var optimizer = simbiconParams.cde*d + simbiconParams.cve*com_vel[0];
+            optimizer = 0;
 
             controllers['human.lKnee'].setGoal({"Z": simbiconParams.swke});
             controllers['human.rKnee'].setGoal({"Z": simbiconParams.stke});
@@ -262,15 +267,14 @@ $(document).ready(function() {
             controllers['human.rElbow'].setGoal({"Z": -.4});
             controllers['human.lElbow'].setGoal({"Z": 0});
 
-//            rHip_uTorsoVPD.setGoal({"Z": simbiconParams.tor});
-//            lHip_lThighVPD.setGoal({"Z": (simbiconParams.swhe + optimizer)});
-//
-//            var rh_ut_torque = rHip_uTorsoVPD.evaluate(dt);
-//            rHip.addTorque(rh_ut_torque);
-//
-//            var lh_lt_torque = lHip_lThighVPD.evaluate(dt);
-//            lHip.addTorque(lh_lt_torque);
-//            rHip.addTorque([-lh_lt_torque[0], -lh_lt_torque[1], -lh_lt_torque[2]]);
+            rHip_uTorsoVPD.setGoal({"Z": simbiconParams.tor});
+            lHip_lThighVPD.setGoal({"Z": (simbiconParams.swhe + optimizer)});
+            var rh_ut_torque = rHip_uTorsoVPD.evaluate(dt);
+            rHip.addTorque(utils.rotateVector(rh_ut_torque, utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.rHip"].parent.getOrientation()))));
+
+            var lh_lt_torque = lHip_lThighVPD.evaluate(dt);
+            lHip.addTorque(utils.rotateVector(lh_lt_torque, utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.lHip"].parent.getOrientation()))));
+            rHip.addTorque(utils.rotateVector([-lh_lt_torque[0], -lh_lt_torque[1], -lh_lt_torque[2]], utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.rHip"].parent.getOrientation()))));
 
             if (t > simbiconParams.dt) {
                 t = 0;
@@ -280,20 +284,20 @@ $(document).ready(function() {
 
             var d = com[0] - world.joints['human.lAnkle'].getPosition()[0];
 
-            var optimizer = simbiconParams.cdo*d + simbiconParams.cvo*com_vel;
+            var optimizer = simbiconParams.cdo*d + simbiconParams.cvo*com_vel[0];
+            optimizer = 0;
 
             controllers['human.lKnee'].setGoal({"Z": simbiconParams.swko});
             controllers['human.rKnee'].setGoal({"Z": simbiconParams.stko});
 //
-//            rHip_uTorsoVPD.setGoal({"Z": simbiconParams.tor});
-//            lHip_lThighVPD.setGoal({"Z": (simbiconParams.swho + optimizer)});
-//
-//            var rh_ut_torque = rHip_uTorsoVPD.evaluate(dt);
-//            rHip.addTorque(rh_ut_torque);
-//
-//            var lh_lt_torque = lHip_lThighVPD.evaluate(dt);
-//            lHip.addTorque(lh_lt_torque);
-//            rHip.addTorque([-lh_lt_torque[0], -lh_lt_torque[1], -lh_lt_torque[2]]);
+            rHip_uTorsoVPD.setGoal({"Z": simbiconParams.tor});
+            lHip_lThighVPD.setGoal({"Z": (simbiconParams.swho + optimizer)});
+            var rh_ut_torque = rHip_uTorsoVPD.evaluate(dt);
+            rHip.addTorque(utils.rotateVector(rh_ut_torque, utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.rHip"].parent.getOrientation()))));
+
+            var lh_lt_torque = lHip_lThighVPD.evaluate(dt);
+            lHip.addTorque(utils.rotateVector(lh_lt_torque, utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.lHip"].parent.getOrientation()))));
+            rHip.addTorque(utils.rotateVector([-lh_lt_torque[0], -lh_lt_torque[1], -lh_lt_torque[2]], utils.RFromQuaternion(utils.getQuaternionInverse(world.joints["human.rHip"].parent.getOrientation()))));
 
             var test = new Ammo.ConcreteContactResultCallback();
             test.addSingleResult = function( cp, colObj0, partid0, index0, colObj1, partid1, index1 ) {
@@ -304,8 +308,8 @@ $(document).ready(function() {
         }
 
         for (var name in controllers) {
-            if (name === 'human.lHip') {continue; }
-            if (name === 'human.rHip') {continue; }
+            //if (name === 'human.lHip') {continue; }
+            //if (name === 'human.rHip') {continue; }
             var torque = controllers[name].evaluate();
             controllers[name].joint.addTorque(torque);
         }

@@ -1,0 +1,41 @@
+---
+title: SimbiconJS - Standing3D
+---
+<!doctype html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>SimbiconJS</title>
+        <link rel="stylesheet" type="text/css" href="css/simbicon.css">
+        <script src="static/human3D.js"></script>
+        <script src="static/coach.js"></script>
+        <script src="static/standing3D.js"></script>
+    </head>
+    <body>
+        <h1>SimbiconJS</h1>
+        <div id='main'>
+            <div id='simbicon'>
+                <div id='simTime'>Simulation Time (% real time): <div id='simRate' style="display: inline-block">0</div></div>
+            </div>
+            <div id='controlpanel'>
+                <button id='walk'>Walk</button> <br>
+                <button id='fwalk'>Fast Walk</button>
+            </div>
+        </div>
+        <script id="ground_fragShader" type="x-shader/x-fragment">
+            varying vec4 vPosition;
+            void main() {
+                float color = (mod((vPosition.x)/4.,1.0)-.5)*(mod((vPosition.z)/4.,1.0)-.5);
+                gl_FragColor = mix(vec4(0.7,0.7,0.7, 1.0), vec4(.5,.5,.5,1.0), step(0., color));
+            }
+        </script>
+        <script id="ground_vertShader" type="x-shader/x-vertex">
+            varying vec4 vPosition;
+            void main() {
+                vPosition = modelMatrix * vec4(position, 1.0);
+                gl_Position = projectionMatrix * viewMatrix * vPosition;
+            }
+        </script>
+
+    </body>
+</html>

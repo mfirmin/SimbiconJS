@@ -361,8 +361,7 @@ VPDController3D.prototype.evaluate = function(dt) {
     torque[2] += -wRel[2]*(-this.kd);
 
     // rotate torque into parent coords
-    torque = utils.rotateVector(torque, utils.RFromQuaternion(utils.getQuaternionInverse(this.joint.parent.getOrientation())));
-//    var ret = utils.rotateVector(torque, utils.RFromQuaternion(this.joint.parent.getOrientation()));
+//    torque = utils.rotateVector(torque, utils.RFromQuaternion(utils.getQuaternionInverse(this.joint.parent.getOrientation())));
 
     return torque;
 
